@@ -24,54 +24,65 @@ type TestSuite = {
 type TestItem = TestCase | TestSuite;
 
 const initialTestCode = `
-describe("Calculator operations", () => {
-  test("adds 5 + 3 to equal 8", () => {
-    expect(add(5, 3)).toBe(8);
+describe("Calculator Functions", () => {
+  describe("Addition and Subtraction", () => {
+    describe("Addition", () => {
+      test("adds two positive numbers", () => {
+        expect(add(2, 3)).toBe(5);
+      });
+
+      test("adds a positive and a negative number", () => {
+        expect(add(5, -2)).toBe(3);
+      });
+
+      test("adds two negative numbers", () => {
+        expect(add(-4, -6)).toBe(-10);
+      });
+    });
+
+    describe("Subtraction", () => {
+      test("subtracts two positive numbers", () => {
+        expect(subtract(10, 4)).toBe(6);
+      });
+
+      test("subtracts a larger number from a smaller number", () => {
+        expect(subtract(3, 7)).toBe(-4);
+      });
+
+      test("subtracts negative numbers", () => {
+        expect(subtract(-5, -2)).toBe(-3);
+      });
+    });
   });
 
-  test("subtracts 10 - 4 to equal 6", () => {
-    expect(subtract(10, 4)).toBe(6);
-  });
+  describe("Multiplication and Division", () => {
+    describe("Multiplication", () => {
+      test("multiplies two positive numbers", () => {
+        expect(multiply(3, 4)).toBe(12);
+      });
 
-  test("multiplies 6 * 7 to equal 42", () => {
-    expect(multiply(6, 7)).toBe(42);
-  });
+      test("multiplies a positive and a negative number", () => {
+        expect(multiply(-2, 6)).toBe(-12);
+      });
 
-  test("divides 20 / 5 to equal 4", () => {
-    expect(divide(20, 5)).toBe(4);
-  });
+      test("multiplies by zero", () => {
+        expect(multiply(10, 0)).toBe(0);
+      });
+    });
 
-  test("throws error when dividing by zero", () => {
-    expect(() => divide(10, 0)).toThrow("Cannot divide by zero");
-  });
+    describe("Division", () => {
+      test("divides two positive numbers", () => {
+        expect(divide(10, 2)).toBe(5);
+      });
 
-  test("calculates power 2^3 to equal 8", () => {
-    expect(power(2, 3)).toBe(8);
-  });
+      test("divides a negative number by a positive number", () => {
+        expect(divide(-9, 3)).toBe(-3);
+      });
 
-  test("calculates square root of 16 to equal 4", () => {
-    expect(sqrt(16)).toBe(4);
-  });
-
-  test("throws error when calculating square root of a negative number", () => {
-    expect(() => sqrt(-9)).toThrow("Cannot calculate square root of a negative number");
-  });
-
-  // 斐波那契数列测试
-  test("calculates fibonacci(0) to equal 0", () => {
-    expect(fibonacci(0)).toBe(0);
-  });
-
-  test("calculates fibonacci(1) to equal 1", () => {
-    expect(fibonacci(1)).toBe(1);
-  });
-
-  test("calculates fibonacci(10) to equal 55", () => {
-    expect(fibonacci(10)).toBe(55);
-  });
-
-  test("throws error when calculating fibonacci of negative number", () => {
-    expect(() => fibonacci(-5)).toThrow("Cannot calculate Fibonacci of a negative number");
+      test("throws error when dividing by zero", () => {
+        expect(() => divide(5, 0)).toThrow("Cannot divide by zero");
+      });
+    });
   });
 });
 `;

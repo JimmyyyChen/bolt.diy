@@ -120,6 +120,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
     const [transcript, setTranscript] = useState('');
     const [isModelLoading, setIsModelLoading] = useState<string | undefined>('all');
     const [progressAnnotations, setProgressAnnotations] = useState<ProgressAnnotation[]>([]);
+    const [enableTestFileInput, setEnableTestFileInput] = useState(false);
     useEffect(() => {
       if (data) {
         const progressList = data.filter(
@@ -513,6 +514,18 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                           <div className="i-ph:paperclip text-xl"></div>
                         </IconButton>
                         <IconButton
+                          title="Toggle Test File Input"
+                          className={classNames('transition-all', {
+                            'bg-bolt-elements-item-backgroundAccent text-bolt-elements-item-contentAccent':
+                              enableTestFileInput,
+                            'bg-bolt-elements-item-backgroundDefault text-bolt-elements-item-contentDefault':
+                              !enableTestFileInput,
+                          })}
+                          onClick={() => setEnableTestFileInput(!enableTestFileInput)}
+                        >
+                          <div className="i-ph:code text-xl"></div>
+                        </IconButton>
+                        <IconButton
                           title="Enhance prompt"
                           disabled={input.length === 0 || enhancingPrompt}
                           className={classNames('transition-all', enhancingPrompt ? 'opacity-100' : '')}
@@ -563,7 +576,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
               </div>
             </div>
 
-            {!chatStarted && <ClientOnly>{() => <TestFileInputClient />}</ClientOnly>}
+            {!chatStarted && <ClientOnly>{() => enableTestFileInput && <TestFileInputClient />}</ClientOnly>}
             <div className="flex flex-col justify-center gap-5">
               {!chatStarted && (
                 <div className="flex justify-center gap-2">
