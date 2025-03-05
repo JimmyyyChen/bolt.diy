@@ -114,3 +114,67 @@ export const STARTER_TEMPLATES: Template[] = [
     icon: 'i-bolt:angular',
   },
 ];
+
+export const INITIAL_TEST_CODE = `
+describe("Calculator Functions", () => {
+  describe("Addition and Subtraction", () => {
+    describe("Addition", () => {
+      test("adds two positive numbers", () => {
+        expect(add(2, 3)).toBe(5);
+      });
+
+      test("adds a positive and a negative number", () => {
+        expect(add(5, -2)).toBe(3);
+      });
+
+      test("adds two negative numbers", () => {
+        expect(add(-4, -6)).toBe(-10);
+      });
+    });
+
+    describe("Subtraction", () => {
+      test("subtracts two positive numbers", () => {
+        expect(subtract(10, 4)).toBe(6);
+      });
+
+      test("subtracts a larger number from a smaller number", () => {
+        expect(subtract(3, 7)).toBe(-4);
+      });
+
+      test("subtracts negative numbers", () => {
+        expect(subtract(-5, -2)).toBe(-3);
+      });
+    });
+  });
+
+  describe("Multiplication and Division", () => {
+    describe("Multiplication", () => {
+      test("multiplies two positive numbers", () => {
+        expect(multiply(3, 4)).toBe(12);
+      });
+
+      test("multiplies a positive and a negative number", () => {
+        expect(multiply(-2, 6)).toBe(-12);
+      });
+
+      test("multiplies by zero", () => {
+        expect(multiply(10, 0)).toBe(0);
+      });
+    });
+
+    describe("Division", () => {
+      test("divides two positive numbers", () => {
+        expect(divide(10, 2)).toBe(5);
+      });
+
+      test("divides a negative number by a positive number", () => {
+        expect(divide(-9, 3)).toBe(-3);
+      });
+
+      test("throws error when dividing by zero", () => {
+        expect(() => divide(5, 0)).toThrow("Cannot divide by zero");
+      });
+    });
+  });
+});
+`;

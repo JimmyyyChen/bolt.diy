@@ -12,7 +12,13 @@ import { useMessageParser, usePromptEnhancer, useShortcuts, useSnapScroll } from
 import { description, useChatHistory } from '~/lib/persistence';
 import { chatStore } from '~/lib/stores/chat';
 import { workbenchStore } from '~/lib/stores/workbench';
-import { DEFAULT_MODEL, DEFAULT_PROVIDER, PROMPT_COOKIE_KEY, PROVIDER_LIST } from '~/utils/constants';
+import {
+  DEFAULT_MODEL,
+  DEFAULT_PROVIDER,
+  PROMPT_COOKIE_KEY,
+  PROVIDER_LIST,
+  INITIAL_TEST_CODE,
+} from '~/utils/constants';
 import { cubicEasingFn } from '~/utils/easings';
 import { createScopedLogger, renderLogger } from '~/utils/logger';
 import { BaseChat } from './BaseChat';
@@ -121,6 +127,8 @@ export const ChatImpl = memo(
     const [imageDataList, setImageDataList] = useState<string[]>([]);
     const [searchParams, setSearchParams] = useSearchParams();
     const [fakeLoading, setFakeLoading] = useState(false);
+    const [testCode, setTestCode] = useState<string>(INITIAL_TEST_CODE);
+    const [enableTestCode, setEnableTestCode] = useState(false);
     const files = useStore(workbenchStore.files);
     const actionAlert = useStore(workbenchStore.alert);
     const { activeProviders, promptId, autoSelectTemplate, contextOptimizationEnabled } = useSettings();
@@ -299,6 +307,24 @@ export const ChatImpl = memo(
       if (!chatStarted) {
         setFakeLoading(true);
 
+        const initialMessages: Message[] = [
+          {
+            id: `${new Date().getTime()}`,
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                text: `[Model: ${model}]\n\n[Provider: ${provider.name}]\n\n${messageContent}`,
+              },
+              ...imageDataList.map((imageData) => ({
+                type: 'image',
+                image: imageData,
+              })),
+            ] as any,
+          },
+        ];
+
+        // TODO: handle autoSelectTemplate
         if (autoSelectTemplate) {
           const { template, title } = await selectStarterTemplate({
             message: messageContent,
@@ -319,49 +345,48 @@ export const ChatImpl = memo(
 
             if (temResp) {
               const { assistantMessage, userMessage } = temResp;
-              setMessages([
-                {
-                  id: `1-${new Date().getTime()}`,
-                  role: 'user',
-                  content: messageContent,
-                },
-                {
-                  id: `2-${new Date().getTime()}`,
-                  role: 'assistant',
-                  content: assistantMessage,
-                },
-                {
-                  id: `3-${new Date().getTime()}`,
-                  role: 'user',
-                  content: `[Model: ${model}]\n\n[Provider: ${provider.name}]\n\n${userMessage}`,
-                  annotations: ['hidden'],
-                },
-              ]);
-              reload();
-              setFakeLoading(false);
 
-              return;
+              initialMessages.push({
+                id: `${new Date().getTime()}-template-assistant`,
+                role: 'assistant',
+                content: assistantMessage,
+              });
+
+              // TODO: improve prompt and add test file prompt
+              initialMessages.push({
+                id: `${new Date().getTime()}-template-user`,
+                role: 'user',
+                content: `[Model: ${model}]\n\n[Provider: ${provider.name}]\n\n${userMessage}`,
+                annotations: ['hidden'],
+              });
             }
           }
         }
 
-        // If autoSelectTemplate is disabled or template selection failed, proceed with normal message
-        setMessages([
-          {
-            id: `${new Date().getTime()}`,
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: `[Model: ${model}]\n\n[Provider: ${provider.name}]\n\n${messageContent}`,
-              },
-              ...imageDataList.map((imageData) => ({
-                type: 'image',
-                image: imageData,
-              })),
-            ] as any,
-          },
-        ]);
+        if (enableTestCode) {
+          initialMessages.push({
+            id: `${new Date().getTime()}-test-code`,
+            role: 'assistant',
+            content: `
+            <boltArtifact id="imported-files" title="TODO" type="bundled">
+              <boltAction type="file" filePath="__test__/test.js">
+                ${testCode}
+              </boltAction>
+            </boltArtifact>
+            `,
+          });
+        }
+
+        // TODO: improve prompt and detect if the test is passing
+        initialMessages.push({
+          id: `${new Date().getTime()}-template-user`,
+          role: 'user',
+          content: `[Model: ${model}]\n\n[Provider: ${provider.name}]\n\nNow that the Test is imported please continue with my original request. you have to ensure the generated code could pass the test. Also, don't forget to install necessary dependencies for testing. you should also import necessary function in the test file. run npm test with  <boltAction type="test"...> before npm run dev to check if the test is passing.`,
+          annotations: ['hidden'],
+        });
+
+        setMessages(initialMessages);
+
         reload();
         setFakeLoading(false);
 
@@ -518,6 +543,10 @@ export const ChatImpl = memo(
         actionAlert={actionAlert}
         clearAlert={() => workbenchStore.clearAlert()}
         data={chatData}
+        testCode={testCode}
+        setTestCode={setTestCode}
+        enableTestCode={enableTestCode}
+        setEnableTestCode={setEnableTestCode}
       />
     );
   },

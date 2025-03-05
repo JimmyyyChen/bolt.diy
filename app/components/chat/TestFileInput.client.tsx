@@ -1,7 +1,7 @@
 import Editor from 'react-simple-code-editor';
 import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/Card';
-import { ChevronDown, ChevronRight, ArrowLeft, ArrowRight, Copy, Clipboard } from 'lucide-react';
+import { ChevronDown, ChevronRight, Copy, Clipboard } from 'lucide-react';
 import Prism from 'prismjs';
 import 'prismjs/components/prism-javascript';
 import 'prismjs/themes/prism.css';
@@ -22,70 +22,6 @@ type TestSuite = {
 };
 
 type TestItem = TestCase | TestSuite;
-
-const initialTestCode = `
-describe("Calculator Functions", () => {
-  describe("Addition and Subtraction", () => {
-    describe("Addition", () => {
-      test("adds two positive numbers", () => {
-        expect(add(2, 3)).toBe(5);
-      });
-
-      test("adds a positive and a negative number", () => {
-        expect(add(5, -2)).toBe(3);
-      });
-
-      test("adds two negative numbers", () => {
-        expect(add(-4, -6)).toBe(-10);
-      });
-    });
-
-    describe("Subtraction", () => {
-      test("subtracts two positive numbers", () => {
-        expect(subtract(10, 4)).toBe(6);
-      });
-
-      test("subtracts a larger number from a smaller number", () => {
-        expect(subtract(3, 7)).toBe(-4);
-      });
-
-      test("subtracts negative numbers", () => {
-        expect(subtract(-5, -2)).toBe(-3);
-      });
-    });
-  });
-
-  describe("Multiplication and Division", () => {
-    describe("Multiplication", () => {
-      test("multiplies two positive numbers", () => {
-        expect(multiply(3, 4)).toBe(12);
-      });
-
-      test("multiplies a positive and a negative number", () => {
-        expect(multiply(-2, 6)).toBe(-12);
-      });
-
-      test("multiplies by zero", () => {
-        expect(multiply(10, 0)).toBe(0);
-      });
-    });
-
-    describe("Division", () => {
-      test("divides two positive numbers", () => {
-        expect(divide(10, 2)).toBe(5);
-      });
-
-      test("divides a negative number by a positive number", () => {
-        expect(divide(-9, 3)).toBe(-3);
-      });
-
-      test("throws error when dividing by zero", () => {
-        expect(() => divide(5, 0)).toThrow("Cannot divide by zero");
-      });
-    });
-  });
-});
-`;
 
 const findTestPositions = (code: string): Map<string, { start: number; end: number }> => {
   const lines = code.split('\n');
@@ -253,13 +189,16 @@ const TestStructure = ({
   );
 };
 
-export default function TestFileInputClient() {
-  const [testCode, setTestCode] = useState(initialTestCode);
+export default function TestFileInputClient({
+  setTestCode,
+  testCode,
+}: {
+  setTestCode: (code: string) => void;
+  testCode: string;
+}) {
   const [testStructure, setTestStructure] = useState<TestItem[]>([]);
   const [selectedTest, setSelectedTest] = useState<TestCase | undefined>();
   const editorRef = useRef<HTMLDivElement>(null);
-  const [codeHistory, setCodeHistory] = useState<string[]>([initialTestCode]);
-  const [historyIndex, setHistoryIndex] = useState(0);
   const [copyStatus, setCopyStatus] = useState<'copy' | 'copied'>('copy');
   const [pasteStatus, setPasteStatus] = useState<'paste' | 'pasted'>('paste');
 
@@ -292,14 +231,6 @@ export default function TestFileInputClient() {
 
   const handleCodeChange = (code: string) => {
     setTestCode(code);
-
-    // Add to history if it's different from the current code
-    if (code !== codeHistory[historyIndex]) {
-      const newHistory = codeHistory.slice(0, historyIndex + 1);
-      newHistory.push(code);
-      setCodeHistory(newHistory);
-      setHistoryIndex(newHistory.length - 1);
-    }
   };
 
   const handleToggle = (suite: TestSuite) => {
@@ -335,20 +266,6 @@ export default function TestFileInputClient() {
     setTimeout(() => {
       setSelectedTest(undefined);
     }, 2000); // Match the animation duration
-  };
-
-  const handleUndo = () => {
-    if (historyIndex > 0) {
-      setHistoryIndex(historyIndex - 1);
-      setTestCode(codeHistory[historyIndex - 1]);
-    }
-  };
-
-  const handleRedo = () => {
-    if (historyIndex < codeHistory.length - 1) {
-      setHistoryIndex(historyIndex + 1);
-      setTestCode(codeHistory[historyIndex + 1]);
-    }
   };
 
   const handleCopy = () => {
@@ -510,13 +427,6 @@ export default function TestFileInputClient() {
               <div className="panel-content">
                 <div className="editor-container">
                   <div className="editor-toolbar">
-                    <button onClick={handleUndo} disabled={historyIndex <= 0} title="Undo">
-                      <ArrowLeft size={16} />
-                    </button>
-                    <button onClick={handleRedo} disabled={historyIndex >= codeHistory.length - 1} title="Redo">
-                      <ArrowRight size={16} />
-                    </button>
-                    <div className="border-r border-gray-300 mx-2 h-5"></div>
                     <div className="button-with-status">
                       <button onClick={handleCopy} title="Copy">
                         <Copy size={16} />

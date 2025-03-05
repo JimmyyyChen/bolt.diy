@@ -72,6 +72,10 @@ interface BaseChatProps {
   clearAlert?: () => void;
   data?: JSONValue[] | undefined;
   actionRunner?: ActionRunner;
+  testCode?: string;
+  setTestCode?: (code: string) => void;
+  enableTestCode?: boolean;
+  setEnableTestCode?: (enable: boolean) => void;
 }
 
 export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
@@ -108,6 +112,10 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
       clearAlert,
       data,
       actionRunner,
+      testCode = '',
+      setTestCode = () => {},
+      enableTestCode = false,
+      setEnableTestCode = () => {},
     },
     ref,
   ) => {
@@ -120,7 +128,6 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
     const [transcript, setTranscript] = useState('');
     const [isModelLoading, setIsModelLoading] = useState<string | undefined>('all');
     const [progressAnnotations, setProgressAnnotations] = useState<ProgressAnnotation[]>([]);
-    const [enableTestFileInput, setEnableTestFileInput] = useState(false);
     useEffect(() => {
       if (data) {
         const progressList = data.filter(
@@ -517,11 +524,11 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                           title="Toggle Test File Input"
                           className={classNames('transition-all', {
                             'bg-bolt-elements-item-backgroundAccent text-bolt-elements-item-contentAccent':
-                              enableTestFileInput,
+                              enableTestCode,
                             'bg-bolt-elements-item-backgroundDefault text-bolt-elements-item-contentDefault':
-                              !enableTestFileInput,
+                              !enableTestCode,
                           })}
-                          onClick={() => setEnableTestFileInput(!enableTestFileInput)}
+                          onClick={() => setEnableTestCode(!enableTestCode)}
                         >
                           <div className="i-ph:code text-xl"></div>
                         </IconButton>
@@ -576,7 +583,11 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
               </div>
             </div>
 
-            {!chatStarted && <ClientOnly>{() => enableTestFileInput && <TestFileInputClient />}</ClientOnly>}
+            {!chatStarted && (
+              <ClientOnly>
+                {() => enableTestCode && <TestFileInputClient setTestCode={setTestCode} testCode={testCode} />}
+              </ClientOnly>
+            )}
             <div className="flex flex-col justify-center gap-5">
               {!chatStarted && (
                 <div className="flex justify-center gap-2">

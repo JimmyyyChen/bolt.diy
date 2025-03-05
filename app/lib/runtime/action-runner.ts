@@ -164,6 +164,10 @@ export class ActionRunner {
           this.buildOutput = buildOutput;
           break;
         }
+        case 'test': {
+          await this.#runTestAction(action);
+          break;
+        }
         case 'start': {
           // making the start app non blocking
 
@@ -273,6 +277,47 @@ export class ActionRunner {
 
     if (resp?.exitCode != 0) {
       throw new ActionCommandError('Failed To Start Application', resp?.output || 'No Output Available');
+    }
+
+    return resp;
+  }
+
+  async #runTestAction(action: ActionState) {
+    if (action.type !== 'test') {
+      unreachable('Expected test action');
+    }
+
+    if (!this.#shellTerminal) {
+      unreachable('Shell terminal not found');
+    }
+
+    const shell = this.#shellTerminal();
+    await shell.ready();
+
+    if (!shell || !shell.terminal || !shell.process) {
+      unreachable('Shell terminal not found');
+    }
+
+    // Default to npm test if no specific command is provided
+    const testCommand = action.content.trim() || 'npm test';
+    const resp = await shell.executeCommand(this.runnerId.get(), testCommand, () => {
+      logger.debug(`[${action.type}]:Aborting Action\n\n`, action);
+      action.abort();
+    });
+    logger.debug(`${action.type} Test Response: [exit code:${resp?.exitCode}]`);
+
+    const output = resp?.output || 'No Output Available';
+
+    if (resp?.exitCode != 0) {
+      throw new ActionCommandError('Failed To Run Tests', output);
+    }
+
+    // TODO: handle test failures correctly
+    const isTestFailure = output.includes('FAIL');
+
+    if (isTestFailure) {
+      const output = resp?.output || 'No Output Available';
+      throw new ActionCommandError('Test Failed', output);
     }
 
     return resp;

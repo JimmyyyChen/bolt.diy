@@ -281,6 +281,7 @@ export const Workbench = memo(
 
     const [isSyncing, setIsSyncing] = useState(false);
     const [isPushDialogOpen, setIsPushDialogOpen] = useState(false);
+    const [isRunningTests, setIsRunningTests] = useState(false);
     const [fileHistory, setFileHistory] = useState<Record<string, FileHistory>>({});
 
     const hasPreview = useStore(computed(workbenchStore.previews, (previews) => previews.length > 0));
@@ -344,6 +345,35 @@ export const Workbench = memo(
       }
     }, []);
 
+    const handleRunTests = async () => {
+      try {
+        setIsRunningTests(true);
+
+        const artifact = workbenchStore.firstArtifact;
+
+        if (!artifact) {
+          throw new Error('No active project found');
+        }
+
+        const actionId = 'test-' + Date.now();
+        const actionData = {
+          messageId: 'run tests',
+          artifactId: artifact.id,
+          actionId,
+          action: {
+            type: 'test' as const,
+            content: 'npm test',
+          },
+        };
+        artifact.runner.addAction(actionData);
+        await artifact.runner.runAction(actionData);
+      } catch (error) {
+        console.error('Test error:', error);
+      } finally {
+        setIsRunningTests(false);
+      }
+    };
+
     const handleSelectFile = useCallback((filePath: string) => {
       workbenchStore.setSelectedFile(filePath);
       workbenchStore.currentView.set('diff');
@@ -387,6 +417,14 @@ export const Workbench = memo(
                       <PanelHeaderButton className="mr-1 text-sm" onClick={handleSyncFiles} disabled={isSyncing}>
                         {isSyncing ? <div className="i-ph:spinner" /> : <div className="i-ph:cloud-arrow-down" />}
                         {isSyncing ? 'Syncing...' : 'Sync Files'}
+                      </PanelHeaderButton>
+                      <PanelHeaderButton
+                        className="mr-1 text-sm"
+                        onClick={handleRunTests}
+                        disabled={isRunningTests || isStreaming}
+                      >
+                        {isRunningTests ? <div className="i-ph:spinner" /> : <div className="i-ph:test-tube" />}
+                        {isRunningTests ? 'Running Tests...' : 'Run Tests'}
                       </PanelHeaderButton>
                       <PanelHeaderButton
                         className="mr-1 text-sm"
