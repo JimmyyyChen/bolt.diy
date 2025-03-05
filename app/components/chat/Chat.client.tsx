@@ -324,7 +324,6 @@ export const ChatImpl = memo(
           },
         ];
 
-        // TODO: handle autoSelectTemplate
         if (autoSelectTemplate) {
           const { template, title } = await selectStarterTemplate({
             message: messageContent,
@@ -363,25 +362,29 @@ export const ChatImpl = memo(
           }
         }
 
+        // TODO: title. package.json add test script: vitest run
         if (enableTestCode) {
           initialMessages.push({
-            id: `${new Date().getTime()}-test-code`,
+            id: `${new Date().getTime()}-test-code-assistant`,
             role: 'assistant',
             content: `
-            <boltArtifact id="imported-files" title="TODO" type="bundled">
-              <boltAction type="file" filePath="__test__/test.js">
-                ${testCode}
-              </boltAction>
-            </boltArtifact>
-            `,
+<boltArtifact id="imported-files" title="importing test file" type="bundled">
+<boltAction type="file" filePath="__test__/test.test.js">${testCode}</boltAction>
+</boltArtifact>`,
           });
         }
 
-        // TODO: improve prompt and detect if the test is passing
+        // TODO: improve prompt and detect if the test is passing.
         initialMessages.push({
-          id: `${new Date().getTime()}-template-user`,
+          id: `${new Date().getTime()}-test-code-user`,
           role: 'user',
-          content: `[Model: ${model}]\n\n[Provider: ${provider.name}]\n\nNow that the Test is imported please continue with my original request. you have to ensure the generated code could pass the test. Also, don't forget to install necessary dependencies for testing. you should also import necessary function in the test file. run npm test with  <boltAction type="test"...> before npm run dev to check if the test is passing.`,
+          content: `[Model: ${model}]\n\n[Provider: ${provider.name}]\n\n
+The test file for vitest is imported, you have to ensure the generated code passes the test by
+- Install all necessary dependencies for vitest.
+- Add the "test": "vitest run" script to package.json
+- Import the required functions in the test file.
+- Before starting the development server, execute test using"<boltAction type="test"...>"to verify that all tests pass.
+Now that the test has been imported, proceed with my original request.`,
           annotations: ['hidden'],
         });
 
