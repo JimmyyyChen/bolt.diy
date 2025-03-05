@@ -366,12 +366,14 @@ export class ActionRunner {
       const content = await webcontainer.fs.readFile(historyPath, 'utf-8');
 
       return JSON.parse(content);
-    } catch {
+    } catch (error) {
+      logger.error('Failed to get file history:', error);
       return null;
     }
   }
 
   async saveFileHistory(filePath: string, history: FileHistory) {
+    // const webcontainer = await this.#webcontainer;
     const historyPath = this.#getHistoryPath(filePath);
 
     await this.#runFileAction({

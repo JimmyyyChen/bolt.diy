@@ -542,65 +542,81 @@ const FileInfo = memo(
   },
 );
 
-const InlineDiffComparison = memo(
-  ({ beforeCode, afterCode, filename, language, _lightTheme, _darkTheme }: CodeComparisonProps) => {
-    const [isFullscreen, setIsFullscreen] = useState(false);
-    const [highlighter, setHighlighter] = useState<any>(null);
-    const theme = useStore(themeStore);
+const InlineDiffComparison = memo(({ beforeCode, afterCode, filename, language }: CodeComparisonProps) => {
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [highlighter, setHighlighter] = useState<any>(null);
+  const theme = useStore(themeStore);
 
-    const toggleFullscreen = useCallback(() => {
-      setIsFullscreen((prev) => !prev);
-    }, []);
+  const toggleFullscreen = useCallback(() => {
+    setIsFullscreen((prev) => !prev);
+  }, []);
 
-    const { unifiedBlocks, hasChanges, isBinary, error } = useProcessChanges(beforeCode, afterCode);
+  const { unifiedBlocks, hasChanges, isBinary, error } = useProcessChanges(beforeCode, afterCode);
 
-    useEffect(() => {
-      getHighlighter({
-        themes: ['github-dark', 'github-light'],
-        langs: ['typescript', 'javascript', 'json', 'html', 'css', 'jsx', 'tsx'],
-      }).then(setHighlighter);
-    }, []);
+  useEffect(() => {
+    getHighlighter({
+      themes: ['github-dark', 'github-light'],
+      langs: [
+        'typescript',
+        'javascript',
+        'json',
+        'html',
+        'css',
+        'jsx',
+        'tsx',
+        'python',
+        'php',
+        'java',
+        'c',
+        'cpp',
+        'csharp',
+        'go',
+        'ruby',
+        'rust',
+        'plaintext',
+      ],
+    }).then(setHighlighter);
+  }, []);
 
-    if (isBinary || error) {
-      return renderContentWarning(isBinary ? 'binary' : 'error');
-    }
+  if (isBinary || error) {
+    return renderContentWarning(isBinary ? 'binary' : 'error');
+  }
 
-    return (
-      <FullscreenOverlay isFullscreen={isFullscreen}>
-        <div className="w-full h-full flex flex-col">
-          <FileInfo
-            filename={filename}
-            hasChanges={hasChanges}
-            onToggleFullscreen={toggleFullscreen}
-            isFullscreen={isFullscreen}
-            beforeCode={beforeCode}
-            afterCode={afterCode}
-          />
-          <div className={diffPanelStyles}>
-            {hasChanges ? (
-              <div className="overflow-x-auto min-w-full">
-                {unifiedBlocks.map((block, index) => (
-                  <CodeLine
-                    key={`${block.lineNumber}-${index}`}
-                    lineNumber={block.lineNumber}
-                    content={block.content}
-                    type={block.type}
-                    highlighter={highlighter}
-                    language={language}
-                    block={block}
-                    theme={theme}
-                  />
-                ))}
-              </div>
-            ) : (
-              <NoChangesView beforeCode={beforeCode} language={language} highlighter={highlighter} theme={theme} />
-            )}
-          </div>
+  return (
+    <FullscreenOverlay isFullscreen={isFullscreen}>
+      <div className="w-full h-full flex flex-col">
+        <FileInfo
+          filename={filename}
+          hasChanges={hasChanges}
+          onToggleFullscreen={toggleFullscreen}
+          isFullscreen={isFullscreen}
+          beforeCode={beforeCode}
+          afterCode={afterCode}
+        />
+        <div className={diffPanelStyles}>
+          {hasChanges ? (
+            <div className="overflow-x-auto min-w-full">
+              {unifiedBlocks.map((block, index) => (
+                <CodeLine
+                  key={`${block.lineNumber}-${index}`}
+                  lineNumber={block.lineNumber}
+                  content={block.content}
+                  type={block.type}
+                  highlighter={highlighter}
+                  language={language}
+                  block={block}
+                  theme={theme}
+                />
+              ))}
+            </div>
+          ) : (
+            <NoChangesView beforeCode={beforeCode} language={language} highlighter={highlighter} theme={theme} />
+          )}
         </div>
-      </FullscreenOverlay>
-    );
-  },
-);
+      </div>
+    </FullscreenOverlay>
+  );
+});
 
 interface DiffViewProps {
   fileHistory: Record<string, FileHistory>;
@@ -608,7 +624,7 @@ interface DiffViewProps {
   _actionRunner: ActionRunner;
 }
 
-export const DiffView = memo(({ fileHistory, setFileHistory, _actionRunner }: DiffViewProps) => {
+export const DiffView = memo(({ fileHistory, setFileHistory }: DiffViewProps) => {
   const files = useStore(workbenchStore.files) as FileMap;
   const selectedFile = useStore(workbenchStore.selectedFile);
   const currentDocument = useStore(workbenchStore.currentDocument) as EditorDocument;
