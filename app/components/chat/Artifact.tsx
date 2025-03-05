@@ -221,6 +221,8 @@ const ActionList = memo(({ actions }: ActionListProps) => {
                   >
                     <span className="flex-1">Start Application</span>
                   </a>
+                ) : type === 'test' ? (
+                  <div>Execute tests</div>
                 ) : null}
               </div>
               {(type === 'shell' || type === 'start') && (
