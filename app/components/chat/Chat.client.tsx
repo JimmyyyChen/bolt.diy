@@ -26,6 +26,7 @@ import { getTemplates, selectStarterTemplate } from '~/utils/selectStarterTempla
 import { logStore } from '~/lib/stores/logs';
 import { streamingState } from '~/lib/stores/streaming';
 import { filesToArtifacts } from '~/utils/fileUtils';
+import type { ApiConfig } from '~/types/api';
 
 const toastAnimation = cssTransition({
   enter: 'animated fadeInRight',
@@ -121,6 +122,7 @@ export const ChatImpl = memo(
     const [imageDataList, setImageDataList] = useState<string[]>([]);
     const [searchParams, setSearchParams] = useSearchParams();
     const [fakeLoading, setFakeLoading] = useState(false);
+    const [apiActions, setApiActions] = useState<ApiConfig[]>([]);
     const files = useStore(workbenchStore.files);
     const actionAlert = useStore(workbenchStore.alert);
     const { activeProviders, promptId, autoSelectTemplate, contextOptimizationEnabled } = useSettings();
@@ -299,6 +301,23 @@ export const ChatImpl = memo(
       if (!chatStarted) {
         setFakeLoading(true);
 
+        const initialMessages: Message[] = [
+          {
+            id: `${new Date().getTime()}`,
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                text: `[Model: ${model}]\n\n[Provider: ${provider.name}]\n\n${messageContent}`,
+              },
+              ...imageDataList.map((imageData) => ({
+                type: 'image',
+                image: imageData,
+              })),
+            ] as any,
+          },
+        ];
+
         if (autoSelectTemplate) {
           const { template, title } = await selectStarterTemplate({
             message: messageContent,
@@ -319,78 +338,38 @@ export const ChatImpl = memo(
 
             if (temResp) {
               const { assistantMessage, userMessage } = temResp;
-              setMessages([
-                {
-                  id: `1-${new Date().getTime()}`,
-                  role: 'user',
-                  content: [
-                    {
-                      type: 'text',
-                      text: `[Model: ${model}]\n\n[Provider: ${provider.name}]\n\n${messageContent}`,
-                    },
-                    ...imageDataList.map((imageData) => ({
-                      type: 'image',
-                      image: imageData,
-                    })),
-                  ] as any,
-                },
-                {
-                  id: `2-${new Date().getTime()}`,
-                  role: 'assistant',
-                  content: assistantMessage,
-                },
-                {
-                  id: `3-${new Date().getTime()}`,
-                  role: 'user',
-                  content: `[Model: ${model}]\n\n[Provider: ${provider.name}]\n\n${userMessage}`,
-                  annotations: ['hidden'],
-                },
-              ]);
-              reload();
-              setInput('');
-              Cookies.remove(PROMPT_COOKIE_KEY);
 
-              setUploadedFiles([]);
-              setImageDataList([]);
+              initialMessages.push({
+                id: `${new Date().getTime()}-template-assistant`,
+                role: 'assistant',
+                content: assistantMessage,
+              });
 
-              resetEnhancer();
-
-              textareaRef.current?.blur();
-              setFakeLoading(false);
-
-              return;
+              // TODO: improve prompt and add test file prompt
+              initialMessages.push({
+                id: `${new Date().getTime()}-template-user`,
+                role: 'user',
+                content: `[Model: ${model}]\n\n[Provider: ${provider.name}]\n\n${userMessage}`,
+                annotations: ['hidden'],
+              });
             }
           }
         }
 
-        // If autoSelectTemplate is disabled or template selection failed, proceed with normal message
-        setMessages([
-          {
-            id: `${new Date().getTime()}`,
+        // TODO: add api actions
+        if (apiActions.length > 0) {
+          initialMessages.push({
+            id: `${new Date().getTime()}-api-actions`,
             role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: `[Model: ${model}]\n\n[Provider: ${provider.name}]\n\n${messageContent}`,
-              },
-              ...imageDataList.map((imageData) => ({
-                type: 'image',
-                image: imageData,
-              })),
-            ] as any,
-          },
-        ]);
+            content: `[Model: ${model}]\n\n[Provider: ${provider.name}]\n\nPlease use the following API actions to complete the task: ${JSON.stringify(apiActions)}`,
+            annotations: ['hidden'],
+          });
+        }
+
+        setMessages(initialMessages);
+
         reload();
         setFakeLoading(false);
-        setInput('');
-        Cookies.remove(PROMPT_COOKIE_KEY);
-
-        setUploadedFiles([]);
-        setImageDataList([]);
-
-        resetEnhancer();
-
-        textareaRef.current?.blur();
 
         return;
       }
@@ -545,6 +524,8 @@ export const ChatImpl = memo(
         actionAlert={actionAlert}
         clearAlert={() => workbenchStore.clearAlert()}
         data={chatData}
+        setApiActions={setApiActions}
+        apiActions={apiActions}
       />
     );
   },

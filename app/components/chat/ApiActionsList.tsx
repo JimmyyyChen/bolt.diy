@@ -5,24 +5,15 @@ import { Plus, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
 import { Button } from '~/components/ui/Button';
 import EditActionsModal from './EditApiActionsModal';
 import { Dialog, DialogRoot, DialogTitle, DialogDescription } from '~/components/ui/Dialog';
+import type { ApiConfig } from '~/types/api';
 
-interface ApiConfig {
-  id?: string;
-  name: string;
-  actions: Array<{
-    name: string;
-    method: string;
-    path: string;
-    summary: string;
-  }>;
-  authType: string;
-  schema: string;
-  serverUrl?: string;
+interface ApiActionsListProps {
+  setApiActions?: (apis: ApiConfig[]) => void;
+  apis?: ApiConfig[];
 }
 
-export function ApiActionsList() {
+export function ApiActionsList({ setApiActions, apis = [] }: ApiActionsListProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [apis, setApis] = useState<ApiConfig[]>([]);
   const [editingApiId, setEditingApiId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingApiId, setDeletingApiId] = useState<string | null>(null);
@@ -41,10 +32,14 @@ export function ApiActionsList() {
   const handleSaveApi = (apiConfig: ApiConfig) => {
     if (editingApiId) {
       // Update existing API
-      setApis(apis.map((api) => (api.id === editingApiId ? apiConfig : api)));
+      if (setApiActions) {
+        setApiActions(apis.map((api) => (api.id === editingApiId ? apiConfig : api)));
+      }
     } else {
       // Add new API
-      setApis([...apis, { ...apiConfig, id: `api-${Date.now()}` }]);
+      if (setApiActions) {
+        setApiActions([...apis, { ...apiConfig, id: `api-${Date.now()}` }]);
+      }
     }
 
     setIsModalOpen(false);
@@ -57,8 +52,8 @@ export function ApiActionsList() {
   };
 
   const confirmDeleteApi = () => {
-    if (deletingApiId) {
-      setApis(apis.filter((api) => api.id !== deletingApiId));
+    if (deletingApiId && setApiActions) {
+      setApiActions(apis.filter((api) => api.id !== deletingApiId));
       setDeleteDialogOpen(false);
       setDeletingApiId(null);
     }

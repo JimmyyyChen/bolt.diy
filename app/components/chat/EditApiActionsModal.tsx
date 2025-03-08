@@ -8,21 +8,13 @@ import { Dialog, DialogRoot, DialogTitle, DialogDescription } from '~/components
 import yaml from 'js-yaml';
 import React from 'react';
 import { ChevronRightIcon } from 'lucide-react';
+import type { ApiConfig } from '~/types/api';
 
 interface Action {
   name: string;
   method: string;
   path: string;
   summary: string;
-}
-
-interface ApiConfig {
-  id?: string;
-  name: string;
-  actions: Action[];
-  authType: string;
-  schema: string;
-  serverUrl?: string;
 }
 
 interface EditActionsModalProps {

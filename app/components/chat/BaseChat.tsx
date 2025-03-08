@@ -22,6 +22,7 @@ import { ImportButtons } from '~/components/chat/chatExportAndImport/ImportButto
 import { ExamplePrompts } from '~/components/chat/ExamplePrompts';
 import GitCloneButton from './GitCloneButton';
 import { ApiActionsList } from './ApiActionsList';
+import type { ApiConfig } from '~/types/api';
 
 import FilePreview from './FilePreview';
 import { ModelSelector } from '~/components/chat/ModelSelector';
@@ -72,6 +73,8 @@ interface BaseChatProps {
   clearAlert?: () => void;
   data?: JSONValue[] | undefined;
   actionRunner?: ActionRunner;
+  apiActions?: ApiConfig[];
+  setApiActions?: (apis: ApiConfig[]) => void;
 }
 
 export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
@@ -108,6 +111,8 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
       clearAlert,
       data,
       actionRunner,
+      apiActions: _apiActions,
+      setApiActions,
     },
     ref,
   ) => {
@@ -595,7 +600,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                   </div>
                 </div>
               </div>
-              <ApiActionsList />
+              <ApiActionsList apis={_apiActions} setApiActions={setApiActions} />
             </div>
             <div className="flex flex-col justify-center gap-5">
               {!chatStarted && (
