@@ -22,7 +22,7 @@ import { ImportButtons } from '~/components/chat/chatExportAndImport/ImportButto
 import { ExamplePrompts } from '~/components/chat/ExamplePrompts';
 import GitCloneButton from './GitCloneButton';
 import { ApiActionsList } from './ApiActionsList';
-import type { ApiActions } from '~/types/api';
+import type { ApiActions } from '~/types/ApiTypes';
 
 import FilePreview from './FilePreview';
 import { ModelSelector } from '~/components/chat/ModelSelector';

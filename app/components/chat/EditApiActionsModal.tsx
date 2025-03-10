@@ -7,8 +7,7 @@ import { Input } from '~/components/ui/Input';
 import { Dialog, DialogRoot, DialogTitle, DialogDescription } from '~/components/ui/Dialog';
 import yaml from 'js-yaml';
 import React from 'react';
-import { ChevronRightIcon } from 'lucide-react';
-import type { ApiActions } from '~/types/api';
+import type { ApiActions, ApiKeyAuth, OtherAuth } from '~/types/ApiTypes';
 
 interface Action {
   name: string;
@@ -29,10 +28,22 @@ export default function EditActionsModal({ isOpen, onClose, onSave, editingApi }
   const [schemaContent, setSchemaContent] = useState('');
   const [serverUrl, setServerUrl] = useState('');
 
-  const [authType, setAuthType] = useState('none');
-  const [authDialogOpen, setAuthDialogOpen] = useState(false);
-  const [apiKeyAuthType, setApiKeyAuthType] = useState('bearer');
-  const [oauthTokenMethod, setOauthTokenMethod] = useState('default');
+  const [authType, setAuthType] = useState<ApiActions['authType']>('none');
+
+  // API Key auth state
+  const [apiKeyAuthType, setApiKeyAuthType] = useState<ApiKeyAuth['authType']>('bearer');
+  const [apiKey, setApiKey] = useState('');
+  const [customHeaderName, setCustomHeaderName] = useState('X-API-Key');
+
+  // Other auth state
+  const [otherAuth, setOtherAuth] = useState<OtherAuth>({
+    description: '',
+    headers: {},
+    queryParams: {},
+  });
+  const [otherAuthHeadersText, setOtherAuthHeadersText] = useState('');
+  const [otherAuthQueryParamsText, setOtherAuthQueryParamsText] = useState('');
+
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [actions, setActions] = useState<Action[]>([]);
   const [parseError, setParseError] = useState<string | null>(null);
@@ -45,6 +56,33 @@ export default function EditActionsModal({ isOpen, onClose, onSave, editingApi }
       setAuthType(editingApi.authType);
       setActions(editingApi.actions);
       setServerUrl(editingApi.serverUrl || '');
+
+      // Load API Key auth data if available
+      if (editingApi.apiKeyAuth) {
+        setApiKeyAuthType(editingApi.apiKeyAuth.authType);
+        setApiKey(editingApi.apiKeyAuth.key || '');
+
+        if (editingApi.apiKeyAuth.customHeaderName) {
+          setCustomHeaderName(editingApi.apiKeyAuth.customHeaderName);
+        }
+      }
+
+      // Load Other auth data if available
+      if (editingApi.otherAuth) {
+        setOtherAuth({
+          description: editingApi.otherAuth.description || '',
+          headers: editingApi.otherAuth.headers || {},
+          queryParams: editingApi.otherAuth.queryParams || {},
+        });
+
+        setOtherAuthHeadersText(
+          editingApi.otherAuth.headers ? JSON.stringify(editingApi.otherAuth.headers, null, 2) : '',
+        );
+
+        setOtherAuthQueryParamsText(
+          editingApi.otherAuth.queryParams ? JSON.stringify(editingApi.otherAuth.queryParams, null, 2) : '',
+        );
+      }
     } else {
       // Reset form for new API
       setApiName('');
@@ -53,7 +91,23 @@ export default function EditActionsModal({ isOpen, onClose, onSave, editingApi }
       setActions([]);
       setServerUrl('');
     }
-  }, [editingApi, isOpen]);
+  }, [editingApi]);
+
+  // Update otherAuth object when text fields change
+  useEffect(() => {
+    try {
+      const headers = otherAuthHeadersText.trim() ? JSON.parse(otherAuthHeadersText) : {};
+      const queryParams = otherAuthQueryParamsText.trim() ? JSON.parse(otherAuthQueryParamsText) : {};
+
+      setOtherAuth((prev) => ({
+        ...prev,
+        headers,
+        queryParams,
+      }));
+    } catch (error) {
+      console.error('Error parsing headers or query params:', error);
+    }
+  }, [otherAuthHeadersText, otherAuthQueryParamsText]);
 
   const exampleSchema = `openapi: 3.1.0
 info:
@@ -283,26 +337,40 @@ paths:
     }
   };
 
-  const getAuthDisplayText = () => {
-    switch (authType) {
-      case 'apiKey':
-        return 'API Key';
-      case 'oauth':
-        return 'OAuth';
-      default:
-        return 'None';
-    }
-  };
-
   const handleSave = () => {
-    onSave({
+    const apiConfig: ApiActions = {
       id: editingApi?.id,
       name: apiName || 'Unnamed API',
       actions,
       authType,
       schema: schemaContent,
       serverUrl,
-    });
+    };
+
+    // Add API Key auth data if applicable
+    if (authType === 'apiKey') {
+      apiConfig.apiKeyAuth = {
+        key: apiKey,
+        authType: apiKeyAuthType,
+        ...(apiKeyAuthType === 'custom' && { customHeaderName }),
+      };
+    }
+
+    // Add Other auth data if applicable
+    if (authType === 'other') {
+      apiConfig.otherAuth = otherAuth;
+    }
+
+    onSave(apiConfig);
+  };
+
+  // Type-safe handlers for RadioGroup
+  const handleAuthTypeChange = (value: string) => {
+    setAuthType(value as ApiActions['authType']);
+  };
+
+  const handleApiKeyAuthTypeChange = (value: string) => {
+    setApiKeyAuthType(value as ApiKeyAuth['authType']);
   };
 
   return (
@@ -316,15 +384,16 @@ paths:
         }}
       >
         <Dialog className="w-full max-w-6xl max-h-[90vh] overflow-auto" onClose={onClose}>
-          <div className="p-8 w-full">
-            <DialogTitle className="text-2xl font-bold text-center">Edit actions</DialogTitle>
-            <DialogDescription className="text-center text-gray-500">
-              {/* TODO: add description about what is openapi schema */}
+          <div className="p-6 w-full">
+            <DialogTitle className="text-xl font-bold text-center mb-4">Edit actions</DialogTitle>
+            <DialogDescription className="text-center text-gray-500 mb-4">
+              {/* TODO: add description about what is openapi schema and add a link to 1. the openapi schema docs 2. Actions GPTs*/}
+              {/* TODO: integrate Actions GPTs? */}
             </DialogDescription>
 
-            <div className="space-y-8 py-4">
+            <div className="space-y-5 py-2">
               <div>
-                <Label htmlFor="apiName" className="text-lg font-bold mb-2 block">
+                <Label htmlFor="apiName" className="text-base font-semibold mb-1.5 block">
                   API Name
                 </Label>
                 <Input
@@ -337,32 +406,129 @@ paths:
               </div>
 
               <div>
-                <h2 className="text-lg font-bold mb-2">Authentication</h2>
-                <Button
-                  variant="outline"
-                  className="w-full justify-between py-2 px-4 h-auto text-left font-normal"
-                  onClick={() => setAuthDialogOpen(true)}
-                >
-                  <div className="flex items-center gap-2">
-                    <span>{getAuthDisplayText()}</span>
-                  </div>
-                  <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
-                </Button>
+                <h2 className="text-base font-semibold mb-1.5">Authentication</h2>
+                <div className="space-y-4">
+                  <RadioGroup value={authType} onValueChange={handleAuthTypeChange} className="flex gap-8">
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="none" id="none" />
+                      <Label htmlFor="none">None</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="apiKey" id="apiKey" />
+                      <Label htmlFor="apiKey">API Key</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="other" id="other" />
+                      <Label htmlFor="other">Other</Label>
+                    </div>
+                  </RadioGroup>
+
+                  {authType === 'apiKey' && (
+                    <>
+                      <div>
+                        <Label htmlFor="apiKey">API Key</Label>
+                        <Input
+                          id="apiKey"
+                          type="password"
+                          placeholder="[HIDDEN]"
+                          value={apiKey}
+                          onChange={(e) => setApiKey(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label>Auth Type</Label>
+                        <RadioGroup
+                          value={apiKeyAuthType}
+                          onValueChange={handleApiKeyAuthTypeChange}
+                          className="flex gap-8"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="basic" id="basic" />
+                            <Label htmlFor="basic">Basic</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="bearer" id="bearer" />
+                            <Label htmlFor="bearer">Bearer</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="custom" id="custom" />
+                            <Label htmlFor="custom">Custom</Label>
+                          </div>
+                        </RadioGroup>
+                      </div>
+                      {apiKeyAuthType === 'custom' && (
+                        <div className="space-y-2">
+                          <Label htmlFor="customHeaderName">Custom Header Name</Label>
+                          <Input
+                            id="customHeaderName"
+                            type="text"
+                            placeholder="X-API-Key"
+                            value={customHeaderName}
+                            onChange={(e) => setCustomHeaderName(e.target.value)}
+                          />
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {authType === 'other' && (
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="otherAuthDescription">Description</Label>
+                        <textarea
+                          id="otherAuthDescription"
+                          className="w-full p-2 border rounded-md resize-none"
+                          placeholder="Describe the authentication method"
+                          value={otherAuth.description}
+                          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                            setOtherAuth((prev) => ({ ...prev, description: e.target.value }))
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="otherAuthHeaders">Headers (JSON format)</Label>
+                        <textarea
+                          id="otherAuthHeaders"
+                          className="w-full p-2 border rounded-md resize-none"
+                          placeholder='{"Authorization": "value", "X-Custom-Header": "value"}'
+                          value={otherAuthHeadersText}
+                          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                            setOtherAuthHeadersText(e.target.value)
+                          }
+                          rows={4}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="otherAuthQueryParams">Query Parameters (JSON format)</Label>
+                        <textarea
+                          id="otherAuthQueryParams"
+                          className="w-full p-2 border rounded-md resize-none"
+                          placeholder='{"api_key": "value", "token": "value"}'
+                          value={otherAuthQueryParamsText}
+                          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                            setOtherAuthQueryParamsText(e.target.value)
+                          }
+                          rows={4}
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
 
               <div>
-                <div className="flex items-center justify-between mb-2">
-                  <h2 className="text-lg font-bold">Schema</h2>
+                <div className="flex items-center justify-between mb-1.5">
+                  <h2 className="text-base font-semibold">Schema</h2>
                   <Button
                     variant="outline"
-                    className="rounded-full flex items-center gap-1"
+                    className="rounded-full flex items-center gap-1 text-sm py-1 px-3 h-auto"
                     onClick={handleLoadExample}
                   >
                     Example
                   </Button>
                 </div>
 
-                <Card className="border rounded-lg p-2 mb-2">
+                <Card className="border rounded-lg p-2 mb-1.5">
                   <textarea
                     value={schemaContent}
                     onChange={(e) => setSchemaContent(e.target.value)}
@@ -371,17 +537,17 @@ paths:
                   />
                 </Card>
 
-                {parseError && <div className="text-red-500 text-sm mt-2">{parseError}</div>}
+                {parseError && <div className="text-red-500 text-sm mt-1">{parseError}</div>}
               </div>
 
               <div>
-                <h2 className="text-lg font-bold mb-4">Available actions</h2>
+                <h2 className="text-base font-semibold mb-2">Available actions</h2>
                 {actions.length > 0 ? (
-                  <div className="grid grid-cols-[1fr_auto_2fr_2fr] gap-y-4 text-sm">
-                    <div className="text-gray-500">Name</div>
-                    <div className="text-gray-500">Method</div>
-                    <div className="text-gray-500">Path</div>
-                    <div className="text-gray-500">Summary</div>
+                  <div className="grid grid-cols-[1fr_auto_2fr_2fr] gap-y-3 text-sm">
+                    <div className="text-gray-500 text-xs uppercase">Name</div>
+                    <div className="text-gray-500 text-xs uppercase">Method</div>
+                    <div className="text-gray-500 text-xs uppercase">Path</div>
+                    <div className="text-gray-500 text-xs uppercase">Summary</div>
 
                     {actions.map((action, index) => (
                       <React.Fragment key={`action-${index}`}>
@@ -393,7 +559,7 @@ paths:
                     ))}
                   </div>
                 ) : (
-                  <p className="text-gray-500">
+                  <p className="text-gray-500 text-sm">
                     {parseError
                       ? 'Unable to parse schema. Please check the format and try again.'
                       : 'No actions available. Add paths to your schema to see actions here.'}
@@ -402,124 +568,14 @@ paths:
               </div>
             </div>
 
-            <div className="pt-4 border-t flex justify-end gap-2">
-              <Button variant="outline" className="rounded-full" onClick={onClose}>
+            <div className="pt-3 mt-4 border-t flex justify-end gap-2">
+              <Button variant="outline" className="rounded-full px-4 py-1 h-auto" onClick={onClose}>
                 Cancel
               </Button>
-              <Button className="rounded-full" onClick={handleSave}>
+              <Button className="rounded-full px-4 py-1 h-auto" onClick={handleSave}>
                 Save API
               </Button>
             </div>
-          </div>
-        </Dialog>
-      </DialogRoot>
-
-      {/* Authentication Dialog */}
-      <DialogRoot open={authDialogOpen}>
-        <Dialog className="sm:max-w-md p-0 gap-0 rounded-xl" onClose={() => setAuthDialogOpen(false)}>
-          <div className="p-6 pb-2">
-            <DialogTitle className="text-xl font-bold">Authentication</DialogTitle>
-          </div>
-          <div className="border-t border-gray-200" />
-          <div className="p-6 space-y-6">
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Authentication Type</h3>
-              <RadioGroup value={authType} onValueChange={setAuthType} className="flex gap-8">
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="none" id="none" />
-                  <Label htmlFor="none">None</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="apiKey" id="apiKey" />
-                  <Label htmlFor="apiKey">API Key</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="oauth" id="oauth" />
-                  <Label htmlFor="oauth">OAuth</Label>
-                </div>
-              </RadioGroup>
-            </div>
-
-            {authType === 'apiKey' && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="apiKey">API Key</Label>
-                  <Input id="apiKey" type="password" placeholder="[HIDDEN]" />
-                </div>
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Auth Type</h3>
-                  <RadioGroup value={apiKeyAuthType} onValueChange={setApiKeyAuthType} className="flex gap-8">
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="basic" id="basic" />
-                      <Label htmlFor="basic">Basic</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="bearer" id="bearer" />
-                      <Label htmlFor="bearer">Bearer</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="custom" id="custom" />
-                      <Label htmlFor="custom">Custom</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-                {apiKeyAuthType === 'custom' && (
-                  <div className="space-y-2">
-                    <Label htmlFor="customHeaderName">Custom Header Name</Label>
-                    <Input id="customHeaderName" type="text" placeholder="X-API-Key" />
-                  </div>
-                )}
-              </>
-            )}
-
-            {authType === 'oauth' && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="clientId">Client ID</Label>
-                  <Input id="clientId" type="password" placeholder="<HIDDEN>" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="clientSecret">Client Secret</Label>
-                  <Input id="clientSecret" type="password" placeholder="<HIDDEN>" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="authUrl">Authorization URL</Label>
-                  <Input id="authUrl" type="text" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="tokenUrl">Token URL</Label>
-                  <Input id="tokenUrl" type="text" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="scope">Scope</Label>
-                  <Input id="scope" type="text" />
-                </div>
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Token Exchange Method</h3>
-                  <RadioGroup value={oauthTokenMethod} onValueChange={setOauthTokenMethod}>
-                    <div className="flex items-center space-x-2 mb-2">
-                      <RadioGroupItem value="default" id="default" />
-                      <Label htmlFor="default">Default (POST request)</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="basic" id="basicAuth" />
-                      <Label htmlFor="basicAuth">Basic authorization header</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-              </>
-            )}
-          </div>
-          <div className="flex justify-end gap-2 p-4 border-t border-gray-200">
-            <Button variant="outline" className="rounded-full px-6" onClick={() => setAuthDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              className="rounded-full px-6 bg-black text-white hover:bg-gray-800"
-              onClick={() => setAuthDialogOpen(false)}
-            >
-              Save
-            </Button>
           </div>
         </Dialog>
       </DialogRoot>

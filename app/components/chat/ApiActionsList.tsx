@@ -5,7 +5,7 @@ import { Plus, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
 import { Button } from '~/components/ui/Button';
 import EditActionsModal from './EditApiActionsModal';
 import { Dialog, DialogRoot, DialogTitle, DialogDescription } from '~/components/ui/Dialog';
-import type { ApiActions } from '~/types/api';
+import type { ApiActions } from '~/types/ApiTypes';
 
 interface ApiActionsListProps {
   setApiActions?: (apis: ApiActions[]) => void;
@@ -67,6 +67,20 @@ export function ApiActionsList({ setApiActions, apis = [] }: ApiActionsListProps
     }));
   };
 
+  // Helper function to get auth display text and icon
+  const getAuthDisplay = (api: ApiActions) => {
+    switch (api.authType) {
+      case 'none':
+        return 'No authentication';
+      case 'apiKey':
+        return 'API Key';
+      case 'other':
+        return api.otherAuth?.description || 'Custom Auth';
+      default:
+        return 'Unknown';
+    }
+  };
+
   return (
     <main className="container mx-auto mb-4">
       <div className="flex justify-between items-center mb-8">
@@ -121,7 +135,7 @@ export function ApiActionsList({ setApiActions, apis = [] }: ApiActionsListProps
                       {api.serverUrl || <span className="text-gray-400">Not specified</span>}
                     </td>
                     <td className="py-4 px-4 text-gray-500">
-                      {api.authType === 'none' ? 'No authentication' : api.authType === 'apiKey' ? 'API Key' : 'OAuth'}
+                      <div className="flex items-center">{getAuthDisplay(api)}</div>
                     </td>
                     <td className="py-4 px-4 text-gray-500">
                       {api.actions.length > 0 ? (

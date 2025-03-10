@@ -26,7 +26,7 @@ import { getTemplates, selectStarterTemplate } from '~/utils/selectStarterTempla
 import { logStore } from '~/lib/stores/logs';
 import { streamingState } from '~/lib/stores/streaming';
 import { filesToArtifacts } from '~/utils/fileUtils';
-import type { ApiActions } from '~/types/api';
+import type { ApiActions } from '~/types/ApiTypes';
 
 const toastAnimation = cssTransition({
   enter: 'animated fadeInRight',
@@ -356,7 +356,7 @@ export const ChatImpl = memo(
           }
         }
 
-        // TODO: add api actions
+        // TODO: use selectStarterAPI? Store API actions in DB? Make a agent to choose API on every call? Are they needed?
         if (apiActions.length > 0) {
           starterMessages.push({
             id: `${new Date().getTime()}-api-actions`,
