@@ -22,7 +22,7 @@ import { ImportButtons } from '~/components/chat/chatExportAndImport/ImportButto
 import { ExamplePrompts } from '~/components/chat/ExamplePrompts';
 import GitCloneButton from './GitCloneButton';
 import { ApiActionsList } from './ApiActionsList';
-import type { ApiConfig } from '~/types/api';
+import type { ApiActions } from '~/types/api';
 
 import FilePreview from './FilePreview';
 import { ModelSelector } from '~/components/chat/ModelSelector';
@@ -73,8 +73,8 @@ interface BaseChatProps {
   clearAlert?: () => void;
   data?: JSONValue[] | undefined;
   actionRunner?: ActionRunner;
-  apiActions?: ApiConfig[];
-  setApiActions?: (apis: ApiConfig[]) => void;
+  apiActions?: ApiActions[];
+  setApiActions?: (apis: ApiActions[]) => void;
 }
 
 export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(

@@ -5,11 +5,11 @@ import { Plus, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
 import { Button } from '~/components/ui/Button';
 import EditActionsModal from './EditApiActionsModal';
 import { Dialog, DialogRoot, DialogTitle, DialogDescription } from '~/components/ui/Dialog';
-import type { ApiConfig } from '~/types/api';
+import type { ApiActions } from '~/types/api';
 
 interface ApiActionsListProps {
-  setApiActions?: (apis: ApiConfig[]) => void;
-  apis?: ApiConfig[];
+  setApiActions?: (apis: ApiActions[]) => void;
+  apis?: ApiActions[];
 }
 
 export function ApiActionsList({ setApiActions, apis = [] }: ApiActionsListProps) {
@@ -29,7 +29,7 @@ export function ApiActionsList({ setApiActions, apis = [] }: ApiActionsListProps
     setIsModalOpen(true);
   };
 
-  const handleSaveApi = (apiConfig: ApiConfig) => {
+  const handleSaveApi = (apiConfig: ApiActions) => {
     if (editingApiId) {
       // Update existing API
       if (setApiActions) {

@@ -8,7 +8,7 @@ import { Dialog, DialogRoot, DialogTitle, DialogDescription } from '~/components
 import yaml from 'js-yaml';
 import React from 'react';
 import { ChevronRightIcon } from 'lucide-react';
-import type { ApiConfig } from '~/types/api';
+import type { ApiActions } from '~/types/api';
 
 interface Action {
   name: string;
@@ -20,8 +20,8 @@ interface Action {
 interface EditActionsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (apiConfig: ApiConfig) => void;
-  editingApi?: ApiConfig;
+  onSave: (apiConfig: ApiActions) => void;
+  editingApi?: ApiActions;
 }
 
 export default function EditActionsModal({ isOpen, onClose, onSave, editingApi }: EditActionsModalProps) {

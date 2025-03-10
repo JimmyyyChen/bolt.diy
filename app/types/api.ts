@@ -2,7 +2,7 @@
  * API-related type definitions
  */
 
-export interface ApiConfig {
+export interface ApiActions {
   id?: string;
   name: string;
   actions: Array<{
@@ -16,6 +16,7 @@ export interface ApiConfig {
   serverUrl?: string;
 }
 
+// TODO
 export interface ApiKeysMap {
   [key: string]: string;
 }
