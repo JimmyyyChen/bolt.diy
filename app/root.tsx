@@ -3,7 +3,6 @@ import type { LinksFunction } from '@remix-run/cloudflare';
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from '@remix-run/react';
 import tailwindReset from '@unocss/reset/tailwind-compat.css?url';
 import { themeStore } from './lib/stores/theme';
-import { stripIndents } from './utils/stripIndent';
 import { createHead } from 'remix-island';
 import { useEffect } from 'react';
 import { DndProvider } from 'react-dnd';
@@ -40,19 +39,27 @@ export const links: LinksFunction = () => [
   },
 ];
 
-const inlineThemeCode = stripIndents`
-  setTutorialKitTheme();
+/*
+ * const inlineThemeCode = stripIndents`
+ *   setTutorialKitTheme();
+ */
 
-  function setTutorialKitTheme() {
-    let theme = localStorage.getItem('bolt_theme');
+/*
+ *   function setTutorialKitTheme() {
+ *     let theme = localStorage.getItem('bolt_theme');
+ */
 
-    if (!theme) {
-      theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    }
+/*
+ *     if (!theme) {
+ *       theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+ *     }
+ */
 
-    document.querySelector('html')?.setAttribute('data-theme', theme);
-  }
-`;
+/*
+ *     document.querySelector('html')?.setAttribute('data-theme', theme);
+ *   }
+ * `;
+ */
 
 export const Head = createHead(() => (
   <>
@@ -60,7 +67,8 @@ export const Head = createHead(() => (
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <Meta />
     <Links />
-    <script dangerouslySetInnerHTML={{ __html: inlineThemeCode }} />
+    {/* TODO: disable theme script for now */}
+    {/* <script dangerouslySetInnerHTML={{ __html: inlineThemeCode }} /> */}
   </>
 ));
 
