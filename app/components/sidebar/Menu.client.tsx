@@ -12,7 +12,7 @@ import { binDates } from './date-binning';
 import { useSearchFilter } from '~/lib/hooks/useSearchFilter';
 import { classNames } from '~/utils/classNames';
 import { useStore } from '@nanostores/react';
-import { menuStore, setMenuOpen } from '~/lib/stores/menu';
+import { menuStore, menuToggleButtonRef, setMenuOpen } from '~/lib/stores/menu';
 
 const menuVariants = {
   closed: {
@@ -97,7 +97,15 @@ export const Menu = () => {
       return;
     }
 
+    const toggleButton = menuToggleButtonRef.get();
+
     const handleClickOutside = (event: MouseEvent) => {
+      // Check if clicking on the menu toggle button in header - if so, ignore this click
+      if (toggleButton && (toggleButton === event.target || toggleButton.contains(event.target as Node))) {
+        return;
+      }
+
+      // Check if clicking inside the menu or if settings are open
       if (isSettingsOpen || (menuRef.current && menuRef.current.contains(event.target as Node))) {
         return;
       }

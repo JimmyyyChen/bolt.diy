@@ -4,10 +4,24 @@ import { chatStore } from '~/lib/stores/chat';
 import { classNames } from '~/utils/classNames';
 import { HeaderActionButtons } from './HeaderActionButtons.client';
 import { ChatDescription } from '~/lib/persistence/ChatDescription.client';
-import { toggleMenu } from '~/lib/stores/menu';
+import { menuStore, menuToggleButtonRef, toggleMenu } from '~/lib/stores/menu';
+import { useRef, useEffect } from 'react';
 
 export function Header() {
   const chat = useStore(chatStore);
+  const isMenuOpen = useStore(menuStore);
+  const menuButtonRef = useRef<HTMLDivElement>(null);
+
+  // Store the menu button reference in the store
+  useEffect(() => {
+    if (menuButtonRef.current) {
+      menuToggleButtonRef.set(menuButtonRef.current);
+    }
+
+    return () => {
+      menuToggleButtonRef.set(null);
+    };
+  }, []);
 
   return (
     <header
@@ -18,13 +32,20 @@ export function Header() {
     >
       <div className="flex items-center gap-2 z-logo text-bolt-elements-textPrimary cursor-pointer">
         <div
-          className="i-ph:sidebar-simple-duotone text-xl"
+          ref={menuButtonRef}
+          className={classNames('i-ph:sidebar-simple-duotone text-xl', {
+            'text-purple-600': isMenuOpen,
+          })}
           onClick={(e) => {
             e.preventDefault();
+            e.stopPropagation();
             toggleMenu();
           }}
+          onMouseDown={(e) => {
+            e.stopPropagation();
+          }}
           role="button"
-          aria-label="Toggle menu"
+          aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
         />
         <a href="/" className="text-2xl font-semibold text-accent flex items-center">
           bolt.SE
