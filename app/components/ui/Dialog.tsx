@@ -94,7 +94,7 @@ interface DialogProps {
   onBackdrop?: () => void;
 }
 
-export const Dialog = memo(({ children, className, showCloseButton = true, onClose, onBackdrop }: DialogProps) => {
+export const Dialog = memo(({ children, className, showCloseButton = false, onClose, onBackdrop }: DialogProps) => {
   return (
     <RadixDialog.Portal>
       <RadixDialog.Overlay asChild>

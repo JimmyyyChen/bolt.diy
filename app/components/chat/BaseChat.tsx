@@ -19,6 +19,8 @@ import * as Tooltip from '@radix-ui/react-tooltip';
 import styles from './BaseChat.module.scss';
 import { ExportChatButton } from '~/components/chat/chatExportAndImport/ExportChatButton';
 import { ExamplePrompts } from '~/components/chat/ExamplePrompts';
+import { ApiActionsList } from './ApiActionsList';
+import type { ApiActions } from '~/types/ApiTypes';
 
 import { ModelSelector } from '~/components/chat/ModelSelector';
 import type { ProviderInfo } from '~/types/model';
@@ -64,6 +66,8 @@ interface BaseChatProps {
   clearAlert?: () => void;
   data?: JSONValue[] | undefined;
   actionRunner?: ActionRunner;
+  apiActions?: ApiActions[];
+  setApiActions?: (apis: ApiActions[]) => void;
 }
 
 export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
@@ -98,6 +102,8 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
       actionAlert,
       clearAlert,
       actionRunner,
+      apiActions: _apiActions,
+      setApiActions,
     },
     ref,
   ) => {
@@ -487,6 +493,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                   </div>
                 </div>
               </div>
+              <ApiActionsList apis={_apiActions} setApiActions={setApiActions} />
             </div>
             <div className="flex flex-col justify-center gap-5">
               {/* {!chatStarted && (
