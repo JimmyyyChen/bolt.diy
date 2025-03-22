@@ -493,7 +493,6 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                   </div>
                 </div>
               </div>
-              <ApiActionsList apis={_apiActions} setApiActions={setApiActions} />
             </div>
             <div className="flex flex-col justify-center gap-5">
               {/* {!chatStarted && (
@@ -513,6 +512,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                 })}
               {/* {!chatStarted && <StarterTemplates />} */}
             </div>
+            {!chatStarted && <ApiActionsList apis={_apiActions} setApiActions={setApiActions} />}
           </div>
           <ClientOnly>
             {() => (

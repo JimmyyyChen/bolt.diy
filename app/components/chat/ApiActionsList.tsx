@@ -83,7 +83,7 @@ export function ApiActionsList({ setApiActions, apis = [] }: ApiActionsListProps
 
   return (
     <main className="container mx-auto mb-4">
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex justify-between items-center mb-2">
         <h1 className="text-2xl font-bold">API Actions</h1>
         <Button onClick={handleAddApi} className="rounded-full flex items-center gap-2">
           <Plus className="h-4 w-4" />
