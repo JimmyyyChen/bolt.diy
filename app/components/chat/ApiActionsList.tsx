@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { useState } from 'react';
-import { Plus, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
+import { Plus, Trash2, Check, Edit2 } from 'lucide-react';
 import { Button } from '~/components/ui/Button';
 import EditActionsModal from './EditApiActionsModal';
 import { Dialog, DialogRoot, DialogTitle, DialogDescription } from '~/components/ui/Dialog';
@@ -9,6 +9,8 @@ import type { ApiActions } from '~/types/ApiTypes';
 import { useApiActions } from '~/lib/persistence/useApiActions';
 import { toast } from 'react-toastify';
 import { logStore } from '~/lib/stores/logs';
+import { chatStore } from '~/lib/stores/chat';
+import { useStore } from '@nanostores/react';
 
 export function ApiActionsList() {
   const { apiActions: apis, isLoading, saveAction, deleteAction } = useApiActions();
@@ -17,6 +19,7 @@ export function ApiActionsList() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingApiId, setDeletingApiId] = useState<string | null>(null);
   const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
+  const selectedApiActions = useStore(chatStore).selectedApiActions as ApiActions[];
 
   const handleAddApi = () => {
     setEditingApiId(null);
@@ -45,8 +48,7 @@ export function ApiActionsList() {
     setIsModalOpen(false);
   };
 
-  const handleDeleteApi = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent opening the edit modal
+  const handleDeleteApi = (id: string) => {
     setDeletingApiId(id);
     setDeleteDialogOpen(true);
   };
@@ -69,12 +71,30 @@ export function ApiActionsList() {
     }
   };
 
-  const toggleRow = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent opening the edit modal
+  const toggleRow = (id: string) => {
     setExpandedRows((prev) => ({
       ...prev,
       [id]: !prev[id],
     }));
+  };
+
+  const addApiToChat = (api: ApiActions) => {
+    // Check if API is already in the selected list
+    const isAlreadySelected = selectedApiActions.some((selectedApi) => selectedApi.id === api.id);
+
+    if (isAlreadySelected) {
+      // Remove from selected list
+      const updatedSelectedApis = selectedApiActions.filter((selectedApi) => selectedApi.id !== api.id);
+      chatStore.setKey('selectedApiActions', updatedSelectedApis);
+    } else {
+      // Add to selected list
+      chatStore.setKey('selectedApiActions', [...selectedApiActions, api]);
+    }
+  };
+
+  // Helper function to check if API is selected
+  const isApiSelected = (apiId: string) => {
+    return selectedApiActions.some((api) => api.id === apiId);
   };
 
   // Helper function to get auth display text and icon
@@ -99,7 +119,14 @@ export function ApiActionsList() {
   return (
     <main className="container mx-auto mb-4">
       <div className="flex justify-between items-center mb-2">
-        <h1 className="text-2xl font-bold">API Actions</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-2xl font-bold">API Actions</h1>
+          {selectedApiActions.length > 0 && (
+            <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+              {selectedApiActions.length} selected for chat
+            </span>
+          )}
+        </div>
         <Button onClick={handleAddApi} className="rounded-full flex items-center gap-2">
           <Plus className="h-4 w-4" />
           Add API
@@ -109,7 +136,10 @@ export function ApiActionsList() {
       {apis.length === 0 ? (
         <div className="text-center py-8 border rounded-lg bg-gray-50 flex flex-col items-center justify-center">
           <h3 className="text-lg font-medium mb-2">No APIs configured yet</h3>
-          <p className="text-gray-500 mb-6 max-w-md">Add your first API to start configuring actions for your GPT</p>
+          <p className="text-gray-500 mb-2 max-w-md">Add your first API to start configuring actions for your GPT</p>
+          <p className="text-gray-500 mb-6 max-w-md text-sm">
+            Once added, you can select specific APIs to make available in your chat conversations
+          </p>
           <Button onClick={handleAddApi} className="rounded-full flex items-center gap-2 px-6" size="lg">
             <Plus className="h-4 w-4" />
             Add your first API
@@ -120,7 +150,7 @@ export function ApiActionsList() {
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="w-10 py-3 px-2"></th>
+                <th className="w-10 py-3 px-2 text-center">Use</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-500">API Name</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-500">Server URL</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-500">Authentication</th>
@@ -131,19 +161,25 @@ export function ApiActionsList() {
             <tbody className="divide-y">
               {apis.map((api, index) => (
                 <React.Fragment key={api.id ?? `api-${index}`}>
-                  <tr className="hover:bg-gray-50 cursor-pointer" onClick={() => handleEditApi(api.id!)}>
+                  <tr>
                     <td className="py-4 px-2 text-center">
-                      <Button
-                        size="icon"
-                        className="rounded-full bg-transparent"
-                        onClick={(e) => toggleRow(api.id!, e)}
+                      <div
+                        className={`w-5 h-5 rounded border flex items-center justify-center cursor-pointer mx-auto
+                          ${isApiSelected(api.id!) ? 'bg-blue-500 border-blue-500' : 'border-gray-300 hover:border-blue-500'}`}
+                        onClick={() => addApiToChat(api)}
+                        role="checkbox"
+                        aria-checked={isApiSelected(api.id!)}
+                        aria-label={`Use ${api.name} in chat`}
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            addApiToChat(api);
+                          }
+                        }}
                       >
-                        {api.id && expandedRows[api.id] ? (
-                          <ChevronDown className="h-6 text-gray-500" />
-                        ) : (
-                          <ChevronRight className="h-6 text-gray-500" />
-                        )}
-                      </Button>
+                        {isApiSelected(api.id!) && <Check className="h-3 w-3 text-white" />}
+                      </div>
                     </td>
                     <td className="py-4 px-4 font-medium">{api.name || 'Unnamed API'}</td>
                     <td className="py-4 px-4 text-gray-500 font-mono text-sm truncate max-w-[200px]">
@@ -154,19 +190,23 @@ export function ApiActionsList() {
                     </td>
                     <td className="py-4 px-4 text-gray-500">
                       {api.actions.length > 0 ? (
-                        <span>
+                        <Button onClick={() => toggleRow(api.id!)}>
                           {api.actions.length} action{api.actions.length !== 1 ? 's' : ''}
-                        </span>
+                        </Button>
                       ) : (
                         <span className="text-gray-400">No actions</span>
                       )}
                     </td>
-                    <td className="py-4 px-4 text-right">
+                    <td className="py-4 px-4 text-right flex items-center justify-end gap-2">
+                      <Button size="icon" onClick={() => handleEditApi(api.id!)} title="Edit API">
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"
                         className="rounded-full h-8 w-8 text-gray-500 hover:text-red-500 hover:bg-red-50"
-                        onClick={(e) => handleDeleteApi(api.id!, e)}
+                        onClick={() => handleDeleteApi(api.id!)}
+                        title="Delete API"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -176,13 +216,7 @@ export function ApiActionsList() {
                     <tr>
                       <td colSpan={6} className="bg-gray-50 p-0">
                         <div className="py-2 px-6 border-t border-gray-100">
-                          <h4 className="font-medium text-xs mb-1">Available Actions</h4>
                           <div className="grid grid-cols-[1fr_auto_2fr_2fr] gap-x-4 gap-y-2 text-sm">
-                            <div className="text-gray-500 uppercase">Name</div>
-                            <div className="text-gray-500 uppercase">Method</div>
-                            <div className="text-gray-500 uppercase pl-2">Path</div>
-                            <div className="text-gray-500 uppercase">Summary</div>
-
                             {api.actions.map((action, index) => (
                               <React.Fragment key={`action-${index}`}>
                                 <div className="font-medium truncate" title={action.name}>

@@ -126,6 +126,7 @@ export const ChatImpl = memo(
     const files = useStore(workbenchStore.files);
     const actionAlert = useStore(workbenchStore.alert);
     const { activeProviders, promptId, autoSelectTemplate, contextOptimizationEnabled } = useSettings();
+    const { selectedApiActions } = useStore(chatStore);
 
     const [model, setModel] = useState(() => {
       const savedModel = Cookies.get('selectedModel');
@@ -356,12 +357,11 @@ export const ChatImpl = memo(
           }
         }
 
-        // TODO: use selectStarterAPI? Store API actions in DB? Make a agent to choose API on every call? Are they needed?
-        if (apiActions.length > 0) {
+        if (selectedApiActions.length > 0) {
           starterMessages.push({
             id: `${new Date().getTime()}-api-actions`,
             role: 'user',
-            content: `[Model: ${model}]\n\n[Provider: ${provider.name}]\n\nPlease use the following API actions to complete the task: ${JSON.stringify(apiActions)}`,
+            content: `[Model: ${model}]\n\n[Provider: ${provider.name}]\n\nPlease use the following API actions to complete the task: ${JSON.stringify(selectedApiActions)}`,
             annotations: ['hidden'],
           });
         }

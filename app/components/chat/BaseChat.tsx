@@ -31,6 +31,7 @@ import ChatAlert from './ChatAlert';
 import type { ModelInfo } from '~/lib/modules/llm/types';
 import type { ActionRunner } from '~/lib/runtime/action-runner';
 import { LOCAL_PROVIDERS } from '~/lib/stores/settings';
+import FilePreview from './FilePreview';
 
 const TEXTAREA_MIN_HEIGHT = 76;
 
@@ -295,14 +296,14 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                      */
                   )}
                 >
-                  {/* <FilePreview
+                  <FilePreview
                     files={uploadedFiles}
                     imageDataList={imageDataList}
                     onRemove={(index) => {
                       setUploadedFiles?.(uploadedFiles.filter((_, i) => i !== index));
                       setImageDataList?.(imageDataList.filter((_, i) => i !== index));
                     }}
-                  /> */}
+                  />
                   <ClientOnly>
                     {() => (
                       <ScreenshotStateManager
