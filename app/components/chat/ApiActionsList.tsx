@@ -121,11 +121,6 @@ export function ApiActionsList() {
       <div className="flex justify-between items-center mb-2">
         <div className="flex items-center gap-2">
           <h1 className="text-2xl font-bold">API Actions</h1>
-          {selectedApiActions.length > 0 && (
-            <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-              {selectedApiActions.length} selected for chat
-            </span>
-          )}
         </div>
         <Button onClick={handleAddApi} className="rounded-full flex items-center gap-2">
           <Plus className="h-4 w-4" />
