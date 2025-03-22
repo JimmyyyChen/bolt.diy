@@ -6,13 +6,12 @@ import { Button } from '~/components/ui/Button';
 import EditActionsModal from './EditApiActionsModal';
 import { Dialog, DialogRoot, DialogTitle, DialogDescription } from '~/components/ui/Dialog';
 import type { ApiActions } from '~/types/ApiTypes';
+import { useApiActions } from '~/lib/persistence/useApiActions';
+import { toast } from 'react-toastify';
+import { logStore } from '~/lib/stores/logs';
 
-interface ApiActionsListProps {
-  setApiActions?: (apis: ApiActions[]) => void;
-  apis?: ApiActions[];
-}
-
-export function ApiActionsList({ setApiActions, apis = [] }: ApiActionsListProps) {
+export function ApiActionsList() {
+  const { apiActions: apis, isLoading, saveAction, deleteAction } = useApiActions();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingApiId, setEditingApiId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -29,17 +28,18 @@ export function ApiActionsList({ setApiActions, apis = [] }: ApiActionsListProps
     setIsModalOpen(true);
   };
 
-  const handleSaveApi = (apiConfig: ApiActions) => {
-    if (editingApiId) {
-      // Update existing API
-      if (setApiActions) {
-        setApiActions(apis.map((api) => (api.id === editingApiId ? apiConfig : api)));
+  const handleSaveApi = async (apiConfig: ApiActions) => {
+    try {
+      if (editingApiId) {
+        // Update existing API
+        await saveAction({ ...apiConfig, id: editingApiId });
+      } else {
+        // Add new API
+        await saveAction(apiConfig);
       }
-    } else {
-      // Add new API
-      if (setApiActions) {
-        setApiActions([...apis, { ...apiConfig, id: `api-${Date.now()}` }]);
-      }
+    } catch (error) {
+      logStore.logError('Failed to save API action', error as Error);
+      toast.error('Failed to save API action');
     }
 
     setIsModalOpen(false);
@@ -51,9 +51,19 @@ export function ApiActionsList({ setApiActions, apis = [] }: ApiActionsListProps
     setDeleteDialogOpen(true);
   };
 
-  const confirmDeleteApi = () => {
-    if (deletingApiId && setApiActions) {
-      setApiActions(apis.filter((api) => api.id !== deletingApiId));
+  const confirmDeleteApi = async () => {
+    if (deletingApiId) {
+      try {
+        const success = await deleteAction(deletingApiId);
+
+        if (!success) {
+          toast.error('Failed to delete API action');
+        }
+      } catch (error) {
+        logStore.logError('Failed to delete API action', error as Error);
+        toast.error('Failed to delete API action');
+      }
+
       setDeleteDialogOpen(false);
       setDeletingApiId(null);
     }
@@ -80,6 +90,11 @@ export function ApiActionsList({ setApiActions, apis = [] }: ApiActionsListProps
         return 'Unknown';
     }
   };
+
+  // TODO: add loading UI
+  if (isLoading) {
+    return <div></div>;
+  }
 
   return (
     <main className="container mx-auto mb-4">

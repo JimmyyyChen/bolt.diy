@@ -67,7 +67,6 @@ interface BaseChatProps {
   data?: JSONValue[] | undefined;
   actionRunner?: ActionRunner;
   apiActions?: ApiActions[];
-  setApiActions?: (apis: ApiActions[]) => void;
 }
 
 export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
@@ -103,7 +102,6 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
       clearAlert,
       actionRunner,
       apiActions: _apiActions,
-      setApiActions,
     },
     ref,
   ) => {
@@ -512,7 +510,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                 })}
               {/* {!chatStarted && <StarterTemplates />} */}
             </div>
-            {!chatStarted && <ApiActionsList apis={_apiActions} setApiActions={setApiActions} />}
+            {!chatStarted && <ApiActionsList />}
           </div>
           <ClientOnly>
             {() => (

@@ -1,11 +1,13 @@
 import type { Message } from 'ai';
 import { createScopedLogger } from '~/utils/logger';
 import type { ChatHistoryItem } from './useChatHistory';
+import type { ApiActions } from '~/types/ApiTypes';
 
 export interface IChatMetadata {
   gitUrl: string;
   gitBranch?: string;
   netlifySiteId?: string;
+  apiActionIds?: string[]; // IDs of API actions associated with this chat
 }
 
 const logger = createScopedLogger('ChatHistory');
@@ -18,15 +20,27 @@ export async function openDatabase(): Promise<IDBDatabase | undefined> {
   }
 
   return new Promise((resolve) => {
-    const request = indexedDB.open('boltHistory', 1);
+    const request = indexedDB.open('boltHistory', 2); // Increment version to trigger upgrade
 
     request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
       const db = (event.target as IDBOpenDBRequest).result;
+      const oldVersion = event.oldVersion;
 
-      if (!db.objectStoreNames.contains('chats')) {
-        const store = db.createObjectStore('chats', { keyPath: 'id' });
-        store.createIndex('id', 'id', { unique: true });
-        store.createIndex('urlId', 'urlId', { unique: true });
+      // Create chats store if it doesn't exist (for new databases or version 0)
+      if (oldVersion < 1) {
+        if (!db.objectStoreNames.contains('chats')) {
+          const store = db.createObjectStore('chats', { keyPath: 'id' });
+          store.createIndex('id', 'id', { unique: true });
+          store.createIndex('urlId', 'urlId', { unique: true });
+        }
+      }
+
+      // Add apiActions store for version 2
+      if (oldVersion < 2) {
+        if (!db.objectStoreNames.contains('apiActions')) {
+          const apiActionsStore = db.createObjectStore('apiActions', { keyPath: 'id' });
+          apiActionsStore.createIndex('id', 'id', { unique: true });
+        }
       }
     };
 
@@ -256,4 +270,82 @@ export async function updateChatMetadata(
   }
 
   await setMessages(db, id, chat.messages, chat.urlId, chat.description, chat.timestamp, metadata);
+}
+
+// API Actions Store Functions
+
+/**
+ * Get all API actions from the API actions store
+ */
+export async function getAllApiActions(db: IDBDatabase): Promise<ApiActions[]> {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction('apiActions', 'readonly');
+    const store = transaction.objectStore('apiActions');
+    const request = store.getAll();
+
+    request.onsuccess = () => resolve(request.result as ApiActions[]);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+/**
+ * Get an API action by its ID
+ */
+export async function getApiActionById(db: IDBDatabase, id: string): Promise<ApiActions | undefined> {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction('apiActions', 'readonly');
+    const store = transaction.objectStore('apiActions');
+    const request = store.get(id);
+
+    request.onsuccess = () => resolve(request.result as ApiActions | undefined);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+/**
+ * Save an API action to the store
+ */
+export async function saveApiAction(db: IDBDatabase, apiAction: ApiActions): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction('apiActions', 'readwrite');
+    const store = transaction.objectStore('apiActions');
+
+    // Ensure the API action has an ID
+    if (!apiAction.id) {
+      apiAction.id = `api-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+    }
+
+    const request = store.put(apiAction);
+
+    request.onsuccess = () => resolve(apiAction.id as string);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+/**
+ * Save multiple API actions to the store
+ */
+export async function saveApiActions(db: IDBDatabase, apiActions: ApiActions[]): Promise<string[]> {
+  const ids: string[] = [];
+
+  for (const action of apiActions) {
+    const id = await saveApiAction(db, action);
+    ids.push(id);
+  }
+
+  return ids;
+}
+
+/**
+ * Delete an API action by its ID
+ */
+export async function deleteApiActionById(db: IDBDatabase, id: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction('apiActions', 'readwrite');
+    const store = transaction.objectStore('apiActions');
+    const request = store.delete(id);
+
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
 }

@@ -26,7 +26,7 @@ import { getTemplates, selectStarterTemplate } from '~/utils/selectStarterTempla
 import { logStore } from '~/lib/stores/logs';
 import { streamingState } from '~/lib/stores/streaming';
 import { filesToArtifacts } from '~/utils/fileUtils';
-import type { ApiActions } from '~/types/ApiTypes';
+import { useApiActions } from '~/lib/persistence/useApiActions';
 
 const toastAnimation = cssTransition({
   enter: 'animated fadeInRight',
@@ -122,7 +122,7 @@ export const ChatImpl = memo(
     const [imageDataList, setImageDataList] = useState<string[]>([]);
     const [searchParams, setSearchParams] = useSearchParams();
     const [fakeLoading, setFakeLoading] = useState(false);
-    const [apiActions, setApiActions] = useState<ApiActions[]>([]);
+    const { apiActions } = useApiActions();
     const files = useStore(workbenchStore.files);
     const actionAlert = useStore(workbenchStore.alert);
     const { activeProviders, promptId, autoSelectTemplate, contextOptimizationEnabled } = useSettings();
@@ -524,7 +524,6 @@ export const ChatImpl = memo(
         actionAlert={actionAlert}
         clearAlert={() => workbenchStore.clearAlert()}
         data={chatData}
-        setApiActions={setApiActions}
         apiActions={apiActions}
       />
     );
