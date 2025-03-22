@@ -92,6 +92,17 @@ export function ApiActionsList() {
     }
   };
 
+  // Add a new function to handle row clicks
+  const handleRowClick = (e: React.MouseEvent, api: ApiActions) => {
+    // Prevent toggling the API if clicking on a button or other interactive element
+    if (e.target instanceof HTMLElement && (e.target.closest('button') || e.target.closest('[role="checkbox"]'))) {
+      return;
+    }
+
+    // Toggle the API selection
+    addApiToChat(api);
+  };
+
   // Helper function to check if API is selected
   const isApiSelected = (apiId: string) => {
     return selectedApiActions.some((api) => api.id === apiId);
@@ -156,12 +167,18 @@ export function ApiActionsList() {
             <tbody className="divide-y">
               {apis.map((api, index) => (
                 <React.Fragment key={api.id ?? `api-${index}`}>
-                  <tr>
+                  <tr
+                    className="hover:bg-gray-50 cursor-pointer transition-colors"
+                    onClick={(e) => handleRowClick(e, api)}
+                  >
                     <td className="py-4 px-2 text-center">
                       <div
                         className={`w-5 h-5 rounded border flex items-center justify-center cursor-pointer mx-auto
                           ${isApiSelected(api.id!) ? 'bg-blue-500 border-blue-500' : 'border-gray-300 hover:border-blue-500'}`}
-                        onClick={() => addApiToChat(api)}
+                        onClick={(e) => {
+                          e.stopPropagation(); // Prevent row click from triggering
+                          addApiToChat(api);
+                        }}
                         role="checkbox"
                         aria-checked={isApiSelected(api.id!)}
                         aria-label={`Use ${api.name} in chat`}
@@ -185,7 +202,12 @@ export function ApiActionsList() {
                     </td>
                     <td className="py-4 px-4 text-gray-500">
                       {api.actions.length > 0 ? (
-                        <Button onClick={() => toggleRow(api.id!)}>
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation(); // Prevent row click from triggering
+                            toggleRow(api.id!);
+                          }}
+                        >
                           {api.actions.length} action{api.actions.length !== 1 ? 's' : ''}
                         </Button>
                       ) : (
@@ -193,14 +215,24 @@ export function ApiActionsList() {
                       )}
                     </td>
                     <td className="py-4 px-4 text-right flex items-center justify-end gap-2">
-                      <Button size="icon" onClick={() => handleEditApi(api.id!)} title="Edit API">
+                      <Button
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation(); // Prevent row click from triggering
+                          handleEditApi(api.id!);
+                        }}
+                        title="Edit API"
+                      >
                         <Edit2 className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
                         className="rounded-full h-8 w-8 text-gray-500 hover:text-red-500 hover:bg-red-50"
-                        onClick={() => handleDeleteApi(api.id!)}
+                        onClick={(e) => {
+                          e.stopPropagation(); // Prevent row click from triggering
+                          handleDeleteApi(api.id!);
+                        }}
                         title="Delete API"
                       >
                         <Trash2 className="h-4 w-4" />

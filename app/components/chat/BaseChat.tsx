@@ -19,7 +19,6 @@ import * as Tooltip from '@radix-ui/react-tooltip';
 import styles from './BaseChat.module.scss';
 import { ExportChatButton } from '~/components/chat/chatExportAndImport/ExportChatButton';
 import { ExamplePrompts } from '~/components/chat/ExamplePrompts';
-import { ApiActionsList } from './ApiActionsList';
 import type { ApiActions } from '~/types/ApiTypes';
 
 import { ModelSelector } from '~/components/chat/ModelSelector';
@@ -513,7 +512,6 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                 })}
               {/* {!chatStarted && <StarterTemplates />} */}
             </div>
-            {!chatStarted && <ApiActionsList />}
           </div>
           <ClientOnly>
             {() => (
