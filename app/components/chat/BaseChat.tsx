@@ -304,7 +304,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                       setImageDataList?.(imageDataList.filter((_, i) => i !== index));
                     }}
                   />
-                  <SelectedApiActionTags />
+                  {!chatStarted && <SelectedApiActionTags />}
                   <ClientOnly>
                     {() => (
                       <ScreenshotStateManager
