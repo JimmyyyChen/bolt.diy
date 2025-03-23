@@ -32,6 +32,7 @@ import type { ActionRunner } from '~/lib/runtime/action-runner';
 import { LOCAL_PROVIDERS } from '~/lib/stores/settings';
 import FilePreview from './FilePreview';
 import { SelectedApiActionTags } from './SelectedApiActionTags';
+import TestFileInputClient from './TestFileInput.client';
 
 const TEXTAREA_MIN_HEIGHT = 76;
 
@@ -68,6 +69,10 @@ interface BaseChatProps {
   data?: JSONValue[] | undefined;
   actionRunner?: ActionRunner;
   apiActions?: ApiActions[];
+  testCode?: string;
+  setTestCode?: (code: string) => void;
+  enableTestCode?: boolean;
+  setEnableTestCode?: (enable: boolean) => void;
 }
 
 export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
@@ -103,6 +108,10 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
       clearAlert,
       actionRunner,
       apiActions: _apiActions,
+      testCode = '',
+      setTestCode = () => {},
+      enableTestCode = false,
+      setEnableTestCode = () => {},
     },
     ref,
   ) => {
@@ -287,13 +296,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                 {/* {progressAnnotations && <ProgressCompilation data={progressAnnotations} />} */}
                 <div
                   className={classNames(
-                    'bg-bolt-elements-background-depth-2 p-2 rounded-lg border border-bolt-elements-borderColor relative w-full max-w-chat mx-auto z-prompt',
-
-                    /*
-                     * {
-                     *   'sticky bottom-2': chatStarted,
-                     * },
-                     */
+                    'bg-bolt-elements-background-depth-2 p-3 rounded-lg border border-bolt-elements-borderColor relative w-full max-w-chat mx-auto z-prompt',
                   )}
                 >
                   <FilePreview
@@ -415,6 +418,18 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                           <div className="i-ph:paperclip text-xl"></div>
                         </IconButton>
                         <IconButton
+                          title="Toggle Test File Input"
+                          className={classNames('transition-all', {
+                            'bg-bolt-elements-item-backgroundAccent text-bolt-elements-item-contentAccent':
+                              enableTestCode,
+                            'bg-bolt-elements-item-backgroundDefault text-bolt-elements-item-contentDefault':
+                              !enableTestCode,
+                          })}
+                          onClick={() => setEnableTestCode(!enableTestCode)}
+                        >
+                          <div className="i-ph:code text-xl"></div>
+                        </IconButton>
+                        <IconButton
                           title="Enhance prompt"
                           disabled={input.length === 0 || enhancingPrompt}
                           className={classNames('transition-all', enhancingPrompt ? 'opacity-100' : '')}
@@ -494,6 +509,12 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                 </div>
               </div>
             </div>
+
+            {!chatStarted && (
+              <ClientOnly>
+                {() => enableTestCode && <TestFileInputClient setTestCode={setTestCode} testCode={testCode} />}
+              </ClientOnly>
+            )}
             <div className="flex flex-col justify-center gap-5">
               {/* {!chatStarted && (
                 <div className="flex justify-center gap-2">

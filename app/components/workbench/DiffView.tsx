@@ -17,8 +17,8 @@ interface CodeComparisonProps {
   afterCode: string;
   language: string;
   filename: string;
-  lightTheme: string;
-  darkTheme: string;
+  _lightTheme: string;
+  _darkTheme: string;
 }
 
 interface DiffBlock {
@@ -621,7 +621,7 @@ const InlineDiffComparison = memo(({ beforeCode, afterCode, filename, language }
 interface DiffViewProps {
   fileHistory: Record<string, FileHistory>;
   setFileHistory: React.Dispatch<React.SetStateAction<Record<string, FileHistory>>>;
-  actionRunner: ActionRunner;
+  _actionRunner: ActionRunner;
 }
 
 export const DiffView = memo(({ fileHistory, setFileHistory }: DiffViewProps) => {
@@ -736,8 +736,8 @@ export const DiffView = memo(({ fileHistory, setFileHistory }: DiffViewProps) =>
           afterCode={currentContent}
           language={language}
           filename={selectedFile}
-          lightTheme="github-light"
-          darkTheme="github-dark"
+          _lightTheme="github-light"
+          _darkTheme="github-dark"
         />
       </div>
     );
