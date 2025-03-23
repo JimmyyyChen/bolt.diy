@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogRoot } from '~/components/ui/Dialog';
 import { Button } from '~/components/ui/Button';
 import { useStore } from '@nanostores/react';
@@ -177,7 +177,7 @@ const TestStructure = ({
   </div>
 );
 
-// The TestEditor component - displays Jest tests in a tree view and editor
+// The TestEditor component
 function TestEditor({
   testCode,
   setTestCode,
@@ -320,33 +320,34 @@ function TestEditor({
   );
 }
 
-// Main TestTags component
-export function TestTags() {
-  const [isTestModalOpen, setIsTestModalOpen] = useState(false);
+// Main AddTestModal component
+export function AddTestModal({ isOpen, onClose, testId }: { isOpen: boolean; onClose: () => void; testId?: string }) {
   const { testCodes = [] } = useStore(chatStore);
   const [currentTestCode, setCurrentTestCode] = useState('');
   const [currentTestName, setCurrentTestName] = useState('');
   const [currentTestId, setCurrentTestId] = useState<string | null>(null);
 
-  // Generate a unique ID for the test code
-  const generateId = () => {
-    return Date.now().toString(36) + Math.random().toString(36).substring(2);
-  };
+  // Load existing test when testId changes
+  useEffect(() => {
+    if (isOpen && testId) {
+      const existingTest = testCodes.find((test: TestCodeItem) => test.id === testId);
 
-  const handleOpenTestModal = (e: React.MouseEvent, existingTest?: TestCodeItem) => {
-    e.stopPropagation();
-
-    if (existingTest) {
-      setCurrentTestCode(existingTest.code);
-      setCurrentTestName(existingTest.name);
-      setCurrentTestId(existingTest.id);
-    } else {
+      if (existingTest) {
+        setCurrentTestCode(existingTest.code);
+        setCurrentTestName(existingTest.name);
+        setCurrentTestId(existingTest.id);
+      }
+    } else if (isOpen) {
+      // Reset when opening for a new test
       setCurrentTestCode('');
       setCurrentTestName('');
       setCurrentTestId(null);
     }
+  }, [isOpen, testId, testCodes]);
 
-    setIsTestModalOpen(true);
+  // Generate a unique ID for the test code
+  const generateId = () => {
+    return Date.now().toString(36) + Math.random().toString(36).substring(2);
   };
 
   const handleSaveTestCode = () => {
@@ -381,71 +382,30 @@ export function TestTags() {
     }
 
     chatStore.setKey('testCodes', updatedTestCodes);
-    setIsTestModalOpen(false);
-  };
-
-  const handleRemoveTestCode = (e: React.MouseEvent, id: string) => {
-    e.stopPropagation();
-
-    const updatedTestCodes = testCodes.filter((test: TestCodeItem) => test.id !== id);
-    chatStore.setKey('testCodes', updatedTestCodes);
+    onClose();
   };
 
   return (
-    <>
-      <div className="flex flex-wrap gap-1 mb-2 px-2">
-        {testCodes.map((test: TestCodeItem) => (
-          <div
-            key={test.id}
-            className="text-xs px-2 py-1 rounded-md bg-bolt-elements-background-depth-3 text-bolt-elements-textSecondary flex items-center group relative cursor-pointer"
-            onClick={(e) => handleOpenTestModal(e, test)}
-          >
-            <span className="i-ph:code text-xs mr-1 group-hover:hidden"></span>
-            <button
-              className="i-ph:x text-xs mr-1 hidden group-hover:inline-block text-bolt-elements-textTertiary hover:text-bolt-elements-textPrimary"
-              onClick={(e) => handleRemoveTestCode(e, test.id)}
-              aria-label={`Remove ${test.name} test code`}
-            />
-            {test.name || 'Test'}
-          </div>
-        ))}
-
-        {/* Add Test Code button */}
-        <button
-          onClick={handleOpenTestModal}
-          className="text-xs px-3 py-1 rounded-md border border-dashed border-bolt-elements-borderColor bg-bolt-elements-background-depth-1 text-bolt-elements-textTertiary hover:text-bolt-elements-textPrimary hover:bg-bolt-elements-background-depth-2 flex items-center gap-1 cursor-pointer transition-colors"
-          aria-label="Add Test Code"
-        >
-          <span className="i-ph:code-fill text-xs"></span>
-          <span>Add Test Code</span>
-        </button>
-      </div>
-
-      {/* Test Code Modal */}
-      <DialogRoot open={isTestModalOpen}>
-        <Dialog
-          className="w-[95vw] max-w-6xl rounded-xl bg-bolt-elements-background-depth-1"
-          onClose={() => setIsTestModalOpen(false)}
-        >
-          <div className="p-6 max-h-[80vh] overflow-y-auto">
-            <TestEditor
-              testCode={currentTestCode}
-              setTestCode={setCurrentTestCode}
-              currentName={currentTestName}
-              setCurrentName={setCurrentTestName}
-              onSave={handleSaveTestCode}
-            />
-          </div>
-          <div className="flex justify-end p-4 border-t gap-3">
-            <Button variant="secondary" className="rounded-full" onClick={() => setIsTestModalOpen(false)}>
-              Cancel
-            </Button>
-            <Button className="rounded-full" onClick={handleSaveTestCode}>
-              Save
-            </Button>
-          </div>
-        </Dialog>
-      </DialogRoot>
-    </>
+    <DialogRoot open={isOpen}>
+      <Dialog className="w-[95vw] max-w-6xl rounded-xl bg-bolt-elements-background-depth-1" onClose={onClose}>
+        <div className="p-6 max-h-[80vh] overflow-y-auto">
+          <TestEditor
+            testCode={currentTestCode}
+            setTestCode={setCurrentTestCode}
+            currentName={currentTestName}
+            setCurrentName={setCurrentTestName}
+            onSave={handleSaveTestCode}
+          />
+        </div>
+        <div className="flex justify-end p-4 border-t gap-3">
+          <Button variant="secondary" className="rounded-full" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button className="rounded-full" onClick={handleSaveTestCode}>
+            Save
+          </Button>
+        </div>
+      </Dialog>
+    </DialogRoot>
   );
 }

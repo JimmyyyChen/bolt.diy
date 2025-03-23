@@ -12,32 +12,40 @@ export function useApiActions() {
   const [apiActions, setApiActions] = useState<ApiActions[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load API actions from IndexedDB
-  useEffect(() => {
-    const loadApiActions = async () => {
-      if (!db) {
-        setIsLoading(false);
-        return;
-      }
+  // Function to load API actions from IndexedDB
+  const loadApiActions = useCallback(async () => {
+    if (!db) {
+      setIsLoading(false);
+      return;
+    }
 
-      try {
-        const actions = await getAllApiActions(db);
-        setApiActions(actions || []);
-      } catch (error) {
-        logStore.logError('Failed to load API actions', error as Error, {
-          component: 'ApiActions',
-          action: 'load',
-          type: 'error',
-          message: 'Failed to load API actions from IndexedDB',
-        });
-        toast.error('Failed to load API actions');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    setIsLoading(true);
 
-    loadApiActions();
+    try {
+      const actions = await getAllApiActions(db);
+      setApiActions(actions || []);
+    } catch (error) {
+      logStore.logError('Failed to load API actions', error as Error, {
+        component: 'ApiActions',
+        action: 'load',
+        type: 'error',
+        message: 'Failed to load API actions from IndexedDB',
+      });
+      toast.error('Failed to load API actions');
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
+
+  // Load API actions on initial mount
+  useEffect(() => {
+    loadApiActions();
+  }, [loadApiActions]);
+
+  // Refresh API actions - can be called manually to refresh the data
+  const refreshActions = useCallback(() => {
+    return loadApiActions();
+  }, [loadApiActions]);
 
   // Save a single API action
   const saveAction = useCallback(async (action: ApiActions): Promise<string | undefined> => {
@@ -149,5 +157,6 @@ export function useApiActions() {
     saveAction,
     saveActions,
     deleteAction,
+    refreshActions,
   };
 }

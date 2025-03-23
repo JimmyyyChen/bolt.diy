@@ -31,8 +31,8 @@ import type { ModelInfo } from '~/lib/modules/llm/types';
 import type { ActionRunner } from '~/lib/runtime/action-runner';
 import { LOCAL_PROVIDERS } from '~/lib/stores/settings';
 import FilePreview from './FilePreview';
-import { SelectedApiActionTags } from './SelectedApiActionTags';
-import { TestTags } from './TestTags';
+import { ApiActionsContextTags } from './ApiActionsContextTags';
+import { TestContextTags } from './TestContextTags';
 
 const TEXTAREA_MIN_HEIGHT = 76;
 
@@ -300,8 +300,8 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                   />
                   {!chatStarted && (
                     <div className="flex">
-                      <SelectedApiActionTags />
-                      <TestTags />
+                      <ApiActionsContextTags />
+                      <TestContextTags />
                     </div>
                   )}
                   <ClientOnly>
