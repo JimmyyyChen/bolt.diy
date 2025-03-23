@@ -12,13 +12,7 @@ import { useMessageParser, usePromptEnhancer, useShortcuts, useSnapScroll } from
 import { description, useChatHistory } from '~/lib/persistence';
 import { chatStore } from '~/lib/stores/chat';
 import { workbenchStore } from '~/lib/stores/workbench';
-import {
-  DEFAULT_MODEL,
-  DEFAULT_PROVIDER,
-  PROMPT_COOKIE_KEY,
-  PROVIDER_LIST,
-  INITIAL_TEST_CODE,
-} from '~/utils/constants';
+import { DEFAULT_MODEL, DEFAULT_PROVIDER, PROMPT_COOKIE_KEY, PROVIDER_LIST } from '~/utils/constants';
 import { cubicEasingFn } from '~/utils/easings';
 import { createScopedLogger, renderLogger } from '~/utils/logger';
 import { BaseChat } from './BaseChat';
@@ -129,12 +123,10 @@ export const ChatImpl = memo(
     const [searchParams, setSearchParams] = useSearchParams();
     const [fakeLoading, setFakeLoading] = useState(false);
     const { apiActions } = useApiActions();
-    const [testCode, setTestCode] = useState<string>(INITIAL_TEST_CODE);
-    const [enableTestCode, setEnableTestCode] = useState(false);
     const files = useStore(workbenchStore.files);
     const actionAlert = useStore(workbenchStore.alert);
     const { activeProviders, promptId, autoSelectTemplate, contextOptimizationEnabled } = useSettings();
-    const { selectedApiActions } = useStore(chatStore);
+    const { selectedApiActions, testCodes } = useStore(chatStore);
 
     const [model, setModel] = useState(() => {
       const savedModel = Cookies.get('selectedModel');
@@ -375,15 +367,23 @@ export const ChatImpl = memo(
         }
 
         // TODO: title. package.json add test script: vitest run
-        if (enableTestCode) {
-          starterMessages.push({
-            id: `${new Date().getTime()}-test-code-assistant`,
-            role: 'assistant',
-            content: `
-        <boltArtifact id="imported-files" title="importing test file" type="bundled">
-        <boltAction type="file" filePath="__test__/test.test.js">${testCode}</boltAction>
-        </boltArtifact>`,
-            annotations: ['hidden'],
+        if (testCodes && testCodes.length > 0) {
+          testCodes.forEach((testItem, index) => {
+            const testId = testItem.id || `test-${index}`;
+            const testName = testItem.name || `Test ${index + 1}`;
+            const testCodeContent = testItem.code || '';
+
+            if (testCodeContent) {
+              starterMessages.push({
+                id: `${new Date().getTime()}-test-code-assistant-${testId}`,
+                role: 'assistant',
+                content: `
+<boltArtifact id="imported-files-${testId}" title="importing test file: ${testName}" type="bundled">
+<boltAction type="file" filePath="__test__/${testName.replace(/\s+/g, '_').toLowerCase()}.test.js">${testCodeContent}</boltAction>
+</boltArtifact>`,
+                annotations: ['hidden'],
+              });
+            }
           });
 
           // TODO: improve prompt and detect if the test is passing.
@@ -391,12 +391,12 @@ export const ChatImpl = memo(
             id: `${new Date().getTime()}-test-code-user`,
             role: 'user',
             content: `[Model: ${model}]\n\n[Provider: ${provider.name}]\n\n
-            The test file for vitest is imported, you have to ensure the generated code passes the test by
-            - Install all necessary dependencies for vitest.
-            - Add the "test": "vitest run" script to package.json
-            - Import the required functions in the test file.
-            - Before starting the development server, execute test using"<boltAction type="test"...>"to verify that all tests pass.
-            Now that the test has been imported, proceed with my original request.`,
+              ${testCodes.length > 1 ? `${testCodes.length} test files have` : 'A test file has'} been imported for vitest. You need to ensure the generated code passes ${testCodes.length > 1 ? 'all tests' : 'the test'} by:
+              - Installing all necessary dependencies for vitest
+              - Adding the "test": "vitest run" script to package.json
+              - Importing the required functions in the test files
+              - Before starting the development server, execute tests using "<boltAction type="test"...>" to verify that all tests pass
+              Now that the ${testCodes.length > 1 ? 'tests have' : 'test has'} been imported, proceed with my original request.`,
             annotations: ['hidden'],
           });
         }
@@ -559,10 +559,6 @@ export const ChatImpl = memo(
         clearAlert={() => workbenchStore.clearAlert()}
         data={chatData}
         apiActions={apiActions}
-        testCode={testCode}
-        setTestCode={setTestCode}
-        enableTestCode={enableTestCode}
-        setEnableTestCode={setEnableTestCode}
       />
     );
   },
