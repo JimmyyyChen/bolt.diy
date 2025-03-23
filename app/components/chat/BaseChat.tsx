@@ -299,7 +299,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                     }}
                   />
                   {!chatStarted && (
-                    <div className="flex">
+                    <div className="flex flex-wrap items-center w-full">
                       <ApiActionsContextTags />
                       <TestContextTags />
                     </div>
