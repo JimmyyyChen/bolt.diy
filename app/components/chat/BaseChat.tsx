@@ -25,7 +25,7 @@ import { ModelSelector } from '~/components/chat/ModelSelector';
 import type { ProviderInfo } from '~/types/model';
 import { ScreenshotStateManager } from './ScreenshotStateManager';
 import { toast } from 'react-toastify';
-import type { ActionAlert } from '~/types/actions';
+import type { ActionAlert, SupabaseAlert } from '~/types/actions';
 import ChatAlert from './ChatAlert';
 import type { ModelInfo } from '~/lib/modules/llm/types';
 import type { ActionRunner } from '~/lib/runtime/action-runner';
@@ -33,6 +33,8 @@ import { LOCAL_PROVIDERS } from '~/lib/stores/settings';
 import FilePreview from './FilePreview';
 import { ApiActionsContextTags } from './ApiActionsContextTags';
 import { TestContextTags } from './TestContextTags';
+import { SupabaseChatAlert } from '~/components/chat/SupabaseAlert';
+import { SupabaseConnection } from './SupabaseConnection';
 
 const TEXTAREA_MIN_HEIGHT = 76;
 
@@ -66,6 +68,8 @@ interface BaseChatProps {
   setImageDataList?: (dataList: string[]) => void;
   actionAlert?: ActionAlert;
   clearAlert?: () => void;
+  supabaseAlert?: SupabaseAlert;
+  clearSupabaseAlert?: () => void;
   data?: JSONValue[] | undefined;
   actionRunner?: ActionRunner;
   apiActions?: ApiActions[];
@@ -102,6 +106,8 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
       messages,
       actionAlert,
       clearAlert,
+      supabaseAlert,
+      clearSupabaseAlert,
       actionRunner,
     },
     ref,
@@ -267,6 +273,16 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                   ) : null;
                 }}
               </ClientOnly>
+              {supabaseAlert && (
+                <SupabaseChatAlert
+                  alert={supabaseAlert}
+                  clearAlert={() => clearSupabaseAlert?.()}
+                  postMessage={(message) => {
+                    sendMessage?.({} as any, message);
+                    clearSupabaseAlert?.();
+                  }}
+                />
+              )}
               <div
                 className={classNames('flex flex-col gap-4 w-full max-w-chat mx-auto z-prompt mb-6', {
                   'sticky bottom-2': chatStarted,
@@ -458,6 +474,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                           a new line
                         </div>
                       ) : null}
+                      <SupabaseConnection />
                     </div>
                   </div>
                   <div>

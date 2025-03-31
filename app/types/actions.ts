@@ -1,6 +1,6 @@
 import type { Change } from 'diff';
 
-export type ActionType = 'file' | 'shell' | 'start' | 'build' | 'test';
+export type ActionType = 'file' | 'shell' | 'start' | 'build' | 'test' | 'supabase';
 
 export interface BaseAction {
   content: string;
@@ -27,7 +27,14 @@ export interface TestAction extends BaseAction {
   type: 'test';
 }
 
-export type BoltAction = FileAction | ShellAction | StartAction | BuildAction | TestAction;
+export interface SupabaseAction extends BaseAction {
+  type: 'supabase';
+  operation: 'migration' | 'query';
+  filePath?: string;
+  projectId?: string;
+}
+
+export type BoltAction = FileAction | ShellAction | StartAction | BuildAction | TestAction | SupabaseAction;
 
 export type BoltActionData = BoltAction | BaseAction;
 
@@ -37,6 +44,14 @@ export interface ActionAlert {
   description: string;
   content: string;
   source?: 'terminal' | 'preview'; // Add source to differentiate between terminal and preview errors
+}
+
+export interface SupabaseAlert {
+  type: string;
+  title: string;
+  description: string;
+  content: string;
+  source?: 'supabase';
 }
 
 export interface FileHistory {

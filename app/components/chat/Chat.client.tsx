@@ -27,6 +27,7 @@ import { logStore } from '~/lib/stores/logs';
 import { streamingState } from '~/lib/stores/streaming';
 import { filesToArtifacts } from '~/utils/fileUtils';
 import { useApiActions } from '~/lib/persistence/useApiActions';
+import { supabaseConnection } from '~/lib/stores/supabase';
 
 const toastAnimation = cssTransition({
   enter: 'animated fadeInRight',
@@ -125,6 +126,11 @@ export const ChatImpl = memo(
     const { apiActions } = useApiActions();
     const files = useStore(workbenchStore.files);
     const actionAlert = useStore(workbenchStore.alert);
+    const supabaseConn = useStore(supabaseConnection); // Add this line to get Supabase connection
+    const selectedProject = supabaseConn.stats?.projects?.find(
+      (project) => project.id === supabaseConn.selectedProjectId,
+    );
+    const supabaseAlert = useStore(workbenchStore.supabaseAlert);
     const { activeProviders, promptId, autoSelectTemplate, contextOptimizationEnabled } = useSettings();
     const { selectedApiActions, testCodes } = useStore(chatStore);
 
@@ -163,6 +169,14 @@ export const ChatImpl = memo(
         files,
         promptId,
         contextOptimization: contextOptimizationEnabled,
+        supabase: {
+          isConnected: supabaseConn.isConnected,
+          hasSelectedProject: !!selectedProject,
+          credentials: {
+            supabaseUrl: supabaseConn?.credentials?.supabaseUrl,
+            anonKey: supabaseConn?.credentials?.anonKey,
+          },
+        },
       },
       sendExtraMessageFields: true,
       onError: (e) => {
@@ -557,6 +571,8 @@ export const ChatImpl = memo(
         setImageDataList={setImageDataList}
         actionAlert={actionAlert}
         clearAlert={() => workbenchStore.clearAlert()}
+        supabaseAlert={supabaseAlert}
+        clearSupabaseAlert={() => workbenchStore.clearSupabaseAlert()}
         data={chatData}
         apiActions={apiActions}
       />
