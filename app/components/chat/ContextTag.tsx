@@ -25,16 +25,16 @@ export function ContextTags<T extends TagItem>({
   addButtonIcon,
 }: ContextTagsProps<T>) {
   return (
-    <div className="flex flex-wrap gap-1 mb-2 px-2">
+    <div className="flex flex-nowrap items-center gap-1 min-w-0">
       {items.map((item) => (
         <div
           key={item.id}
-          className="text-xs px-2 py-1 rounded-md bg-bolt-elements-background-depth-3 text-bolt-elements-textSecondary flex items-center group relative cursor-pointer"
+          className="text-xs px-1.5 py-0.5 rounded-md bg-bolt-elements-background-depth-3 text-bolt-elements-textSecondary flex items-center group relative cursor-pointer whitespace-nowrap shrink-0"
           onClick={(e) => onItemClick && onItemClick(e, item)}
         >
-          <span className={`${tagIcon} text-xs mr-1 group-hover:hidden`}></span>
+          <span className={`${tagIcon} text-xs mr-0.5 group-hover:hidden`}></span>
           <button
-            className="i-ph:x text-xs mr-1 hidden group-hover:inline-block text-bolt-elements-textTertiary hover:text-bolt-elements-textPrimary"
+            className="i-ph:x text-xs mr-0.5 hidden group-hover:inline-block text-bolt-elements-textTertiary hover:text-bolt-elements-textPrimary"
             onClick={(e) => {
               e.stopPropagation();
               onRemove(item.id);
@@ -48,7 +48,7 @@ export function ContextTags<T extends TagItem>({
       {/* Add button */}
       <button
         onClick={onAddClick}
-        className="text-xs px-3 py-1 rounded-md border border-dashed border-bolt-elements-borderColor bg-bolt-elements-background-depth-1 text-bolt-elements-textTertiary hover:text-bolt-elements-textPrimary hover:bg-bolt-elements-background-depth-2 flex items-center gap-1 cursor-pointer transition-colors"
+        className="text-xs px-2 py-0.5 rounded-md border border-dashed border-bolt-elements-borderColor bg-bolt-elements-background-depth-1 text-bolt-elements-textTertiary hover:text-bolt-elements-textPrimary hover:bg-bolt-elements-background-depth-2 flex items-center gap-0.5 cursor-pointer transition-colors whitespace-nowrap shrink-0"
         aria-label={addButtonText}
       >
         <span className={`${addButtonIcon} text-xs`}></span>
