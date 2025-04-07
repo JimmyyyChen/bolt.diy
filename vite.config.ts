@@ -8,6 +8,8 @@ import * as dotenv from 'dotenv';
 import { execSync } from 'child_process';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { vitePlugin as remix } from '@remix-run/dev';
+import { netlifyPlugin } from '@netlify/remix-adapter/plugin';
 
 dotenv.config();
 
@@ -115,6 +117,9 @@ export default defineConfig((config) => {
       },
     },
     plugins: [
+      config.mode !== 'test' && remixCloudflareDevProxy(),
+      remix(),
+      netlifyPlugin(),
       nodePolyfills({
         include: ['buffer', 'process', 'util', 'stream', 'crypto'],
         globals: {
@@ -138,7 +143,6 @@ export default defineConfig((config) => {
           return null;
         },
       },
-      config.mode !== 'test' && remixCloudflareDevProxy(),
       remixVitePlugin({
         future: {
           v3_fetcherPersist: true,
