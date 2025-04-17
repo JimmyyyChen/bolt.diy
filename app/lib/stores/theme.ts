@@ -15,18 +15,28 @@ export const themeStore = atom<Theme>(initStore());
 
 function initStore() {
   if (!import.meta.env.SSR) {
-    const persistedTheme = localStorage.getItem(kTheme) as Theme | undefined;
-    const themeAttribute = document.querySelector('html')?.getAttribute('data-theme');
+    /*
+     * const persistedTheme = localStorage.getItem(kTheme) as Theme | undefined;
+     * const themeAttribute = document.querySelector('html')?.getAttribute('data-theme');
+     */
 
-    return persistedTheme ?? (themeAttribute as Theme) ?? DEFAULT_THEME;
+    // return persistedTheme ?? (themeAttribute as Theme) ?? DEFAULT_THEME;
+
+    localStorage.setItem(kTheme, 'light');
+    document.querySelector('html')?.setAttribute('data-theme', 'light');
+
+    return 'light' as Theme;
   }
 
   return DEFAULT_THEME;
 }
 
 export function toggleTheme() {
-  const currentTheme = themeStore.get();
-  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  /*
+   * const currentTheme = themeStore.get();
+   * const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+   */
+  const newTheme = 'light';
 
   // Update the theme store
   themeStore.set(newTheme);
