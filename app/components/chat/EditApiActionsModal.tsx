@@ -20,10 +20,11 @@ interface EditActionsModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (apiConfig: ApiActions) => void;
+  onAfterSave?: (apiConfig: ApiActions) => void;
   editingApi?: ApiActions;
 }
 
-export default function EditActionsModal({ isOpen, onClose, onSave, editingApi }: EditActionsModalProps) {
+export default function EditActionsModal({ isOpen, onClose, onSave, onAfterSave, editingApi }: EditActionsModalProps) {
   const [apiName, setApiName] = useState('');
   const [schemaContent, setSchemaContent] = useState('');
   const [serverUrl, setServerUrl] = useState('');
@@ -362,6 +363,11 @@ paths:
     }
 
     onSave(apiConfig);
+
+    // Call the onAfterSave callback if provided
+    if (onAfterSave) {
+      onAfterSave(apiConfig);
+    }
   };
 
   // Type-safe handlers for RadioGroup

@@ -46,6 +46,24 @@ export function ApiActionsModal({ isOpen, onClose }: { isOpen: boolean; onClose:
     setIsEditModalOpen(true);
   };
 
+  const handleAfterSave = (apiConfig: ApiActions) => {
+    // Ensure the API is selected in the chat
+    if (apiConfig.id && !selectedApiActions.some((api) => api.id === apiConfig.id)) {
+      chatStore.setKey('selectedApiActions', [...selectedApiActions, apiConfig]);
+    }
+
+    // Expand the row to show actions
+    if (apiConfig.id) {
+      setExpandedRows((prev) => ({
+        ...prev,
+        [apiConfig.id as string]: true,
+      }));
+    }
+
+    // Close the edit modal
+    setIsEditModalOpen(false);
+  };
+
   const handleSaveApi = async (apiConfig: ApiActions) => {
     try {
       if (editingApiId) {
@@ -70,8 +88,6 @@ export function ApiActionsModal({ isOpen, onClose }: { isOpen: boolean; onClose:
       logStore.logError('Failed to save API action', error as Error);
       toast.error('Failed to save API action');
     }
-
-    setIsEditModalOpen(false);
   };
 
   const handleDeleteApi = (id: string) => {
@@ -329,6 +345,7 @@ export function ApiActionsModal({ isOpen, onClose }: { isOpen: boolean; onClose:
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         onSave={handleSaveApi}
+        onAfterSave={handleAfterSave}
         editingApi={editingApiId ? apis.find((api) => api.id === editingApiId) : undefined}
       />
 
