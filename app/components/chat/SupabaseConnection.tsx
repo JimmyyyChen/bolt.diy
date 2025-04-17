@@ -91,9 +91,9 @@ export function SupabaseConnection() {
             crossOrigin="anonymous"
             src="https://cdn.simpleicons.org/supabase"
           />
-          {isConnected && supabaseConn.project && (
+          {/* {isConnected && supabaseConn.project && (
             <span className="ml-1 text-xs max-w-[100px] truncate">{supabaseConn.project.name}</span>
-          )}
+          )} */}
         </Button>
       </div>
 
