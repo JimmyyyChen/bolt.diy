@@ -2,6 +2,7 @@ import type { Message } from 'ai';
 import { createScopedLogger } from '~/utils/logger';
 import type { ChatHistoryItem } from './useChatHistory';
 import type { ApiActions } from '~/types/ApiTypes';
+import type { MCPConfig } from '~/lib/hooks/useMCPConfig';
 
 export interface IChatMetadata {
   gitUrl: string;
@@ -20,7 +21,7 @@ export async function openDatabase(): Promise<IDBDatabase | undefined> {
   }
 
   return new Promise((resolve) => {
-    const request = indexedDB.open('boltHistory', 2); // Increment version to trigger upgrade
+    const request = indexedDB.open('boltHistory', 3); // Increment version to trigger upgrade
 
     request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
       const db = (event.target as IDBOpenDBRequest).result;
@@ -40,6 +41,13 @@ export async function openDatabase(): Promise<IDBDatabase | undefined> {
         if (!db.objectStoreNames.contains('apiActions')) {
           const apiActionsStore = db.createObjectStore('apiActions', { keyPath: 'id' });
           apiActionsStore.createIndex('id', 'id', { unique: true });
+        }
+      }
+
+      // Add mcpConfig store for version 3
+      if (oldVersion < 3) {
+        if (!db.objectStoreNames.contains('mcpConfig')) {
+          db.createObjectStore('mcpConfig', { keyPath: 'id' });
         }
       }
     };
@@ -344,6 +352,69 @@ export async function deleteApiActionById(db: IDBDatabase, id: string): Promise<
     const transaction = db.transaction('apiActions', 'readwrite');
     const store = transaction.objectStore('apiActions');
     const request = store.delete(id);
+
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+}
+
+// MCP Configuration functions
+
+/**
+ * Save MCP configuration to IndexedDB
+ * @param db The IndexedDB database instance
+ * @param config The MCP configuration to save
+ */
+export async function saveMCPConfig(db: IDBDatabase, config: MCPConfig): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction('mcpConfig', 'readwrite');
+    const store = transaction.objectStore('mcpConfig');
+
+    const configObject = {
+      id: 'default', // We use a fixed ID since we only have one config
+      config,
+      updatedAt: new Date().toISOString(),
+    };
+
+    const request = store.put(configObject);
+
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+}
+
+/**
+ * Get MCP configuration from IndexedDB
+ * @param db The IndexedDB database instance
+ * @returns The MCP configuration or null if not found
+ */
+export async function getMCPConfig(db: IDBDatabase): Promise<MCPConfig | null> {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction('mcpConfig', 'readonly');
+    const store = transaction.objectStore('mcpConfig');
+    const request = store.get('default');
+
+    request.onsuccess = () => {
+      if (request.result) {
+        resolve(request.result.config);
+      } else {
+        resolve(null);
+      }
+    };
+
+    request.onerror = () => reject(request.error);
+  });
+}
+
+/**
+ * Delete MCP configuration from IndexedDB
+ * @param db The IndexedDB database instance
+ */
+export async function deleteMCPConfig(db: IDBDatabase): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction('mcpConfig', 'readwrite');
+    const store = transaction.objectStore('mcpConfig');
+    const request = store.delete('default');
 
     request.onsuccess = () => resolve();
     request.onerror = () => reject(request.error);

@@ -1,6 +1,6 @@
 /// <reference types="vite/client" />
 import { createRequestHandler } from '@remix-run/node';
-import electron, { app, BrowserWindow, ipcMain, protocol, session } from 'electron';
+import { app, BrowserWindow, ipcMain, protocol, session } from 'electron';
 import log from 'electron-log';
 import path from 'node:path';
 import * as pkg from '../../package.json';
@@ -17,7 +17,7 @@ Object.assign(console, log.functions);
 
 console.debug('main: import.meta.env:', import.meta.env);
 console.log('main: isDev:', isDev);
-console.log('NODE_ENV:', global.process.env.NODE_ENV);
+console.log('NODE_ENV:', process.env.NODE_ENV);
 console.log('isPackaged:', app.isPackaged);
 
 // Log unhandled errors
@@ -30,7 +30,7 @@ process.on('unhandledRejection', async (error) => {
 });
 
 (() => {
-  const root = global.process.env.APP_PATH_ROOT ?? import.meta.env.VITE_APP_PATH_ROOT;
+  const root = process.env.APP_PATH_ROOT ?? import.meta.env.VITE_APP_PATH_ROOT;
 
   if (root === undefined) {
     console.log('no given APP_PATH_ROOT or VITE_APP_PATH_ROOT. default path is used.');
@@ -39,7 +39,7 @@ process.on('unhandledRejection', async (error) => {
 
   if (!path.isAbsolute(root)) {
     console.log('APP_PATH_ROOT must be absolute path.');
-    global.process.exit(1);
+    process.exit(1);
   }
 
   console.log(`APP_PATH_ROOT: ${root}`);
@@ -62,11 +62,6 @@ console.log('appPath:', app.getAppPath());
 const keys: Parameters<typeof app.getPath>[number][] = ['home', 'appData', 'userData', 'sessionData', 'logs', 'temp'];
 keys.forEach((key) => console.log(`${key}:`, app.getPath(key)));
 console.log('start whenReady');
-
-declare global {
-  // eslint-disable-next-line no-var, @typescript-eslint/naming-convention
-  var __electron__: typeof electron;
-}
 
 (async () => {
   await app.whenReady();
@@ -160,7 +155,6 @@ declare global {
         }
 
         const listen = await viteServer.listen();
-        global.__electron__ = electron;
         viteServer.printUrls();
 
         return `http://localhost:${listen.config.server.port}`;

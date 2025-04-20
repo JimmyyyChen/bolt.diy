@@ -11,6 +11,7 @@ import type { ContextAnnotation, ProgressAnnotation } from '~/types/context';
 import { WORK_DIR } from '~/utils/constants';
 import { createSummary } from '~/lib/.server/llm/create-summary';
 import { extractPropertiesFromMessage } from '~/lib/.server/llm/utils';
+import { createMCPClients, closeMCPClients } from '~/lib/services/mcp';
 
 export async function action(args: ActionFunctionArgs) {
   return chatAction(args);
@@ -37,7 +38,7 @@ function parseCookies(cookieHeader: string): Record<string, string> {
 }
 
 async function chatAction({ context, request }: ActionFunctionArgs) {
-  const { messages, files, promptId, contextOptimization, supabase } = await request.json<{
+  const { messages, files, promptId, contextOptimization, supabase, mcpConfig } = await request.json<{
     messages: Messages;
     files: any;
     promptId?: string;
@@ -49,6 +50,17 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
         anonKey?: string;
         supabaseUrl?: string;
       };
+    };
+    mcpConfig?: {
+      mcpServers: Record<
+        string,
+        {
+          command?: string;
+          args?: string[];
+          url?: string;
+          env?: Record<string, string>;
+        }
+      >;
     };
   }>();
 
@@ -183,13 +195,58 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
             order: progressCounter++,
             message: 'Code Files Selected',
           } satisfies ProgressAnnotation);
-
-          // logger.debug('Code Files Selected');
         }
 
+        // Initialize MCP clients and get tools using the MCP service
+        const { tools, clients } = await createMCPClients(mcpConfig);
+
         const options: StreamingOptions = {
+          tools,
+          maxSteps: 6,
           supabaseConnection: supabase,
-          toolChoice: 'none',
+          onStepFinish: ({ toolCalls, toolResults }) => {
+            if (toolCalls && toolCalls.length > 0) {
+              toolCalls.forEach((toolCall, index) => {
+                const toolName = toolCall.toolName;
+                const toolResult = toolResults?.[index];
+
+                logger.debug(`MCP Tool '${toolName}' executed with args: ${JSON.stringify(toolCall.args)}`);
+
+                // Add progress indicator to frontend that tool is running
+                dataStream.writeData({
+                  type: 'progress',
+                  label: 'tool',
+                  status: 'in-progress',
+                  order: progressCounter++,
+                  message: `Running tool: ${toolName}`,
+                } satisfies ProgressAnnotation);
+
+                if (toolResult) {
+                  logger.debug(`MCP Tool '${toolName}' result: ${JSON.stringify(toolResult)}`);
+
+                  // Add progress indicator that tool completed
+                  dataStream.writeData({
+                    type: 'progress',
+                    label: 'tool',
+                    status: 'complete',
+                    order: progressCounter++,
+                    message: `MCP Tool '${toolName}' executed successfully`,
+                  } satisfies ProgressAnnotation);
+                } else {
+                  logger.warn(`MCP Tool '${toolName}' didn't return a result`);
+
+                  // Add progress indicator that tool failed
+                  dataStream.writeData({
+                    type: 'progress',
+                    label: 'tool',
+                    status: 'complete',
+                    order: progressCounter++,
+                    message: `MCP Tool '${toolName}' completed with no result`,
+                  } satisfies ProgressAnnotation);
+                }
+              });
+            }
+          },
           onFinish: async ({ text: content, finishReason, usage }) => {
             logger.debug('usage', JSON.stringify(usage));
 
@@ -198,6 +255,9 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
               cumulativeUsage.promptTokens += usage.promptTokens || 0;
               cumulativeUsage.totalTokens += usage.totalTokens || 0;
             }
+
+            // Clean up MCP clients
+            await closeMCPClients(clients);
 
             if (finishReason !== 'length') {
               dataStream.writeMessageAnnotation({

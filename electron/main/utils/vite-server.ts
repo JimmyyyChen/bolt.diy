@@ -5,7 +5,7 @@ let viteServer: ViteDevServer | undefined;
 
 // Conditionally import Vite only in development
 export async function initViteServer() {
-  if (!(global.process.env.NODE_ENV === 'production' || app.isPackaged)) {
+  if (!(process.env.NODE_ENV === 'production' || app.isPackaged)) {
     const vite = await import('vite');
     viteServer = await vite.createServer({
       root: '.',
