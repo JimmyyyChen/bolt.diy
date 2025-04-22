@@ -10,8 +10,10 @@ import { logStore } from '~/lib/stores/logs';
 import { chatStore } from '~/lib/stores/chat';
 import { useStore } from '@nanostores/react';
 import EditActionsModal from './EditApiActionsModal';
+import { useTranslation } from 'react-i18next';
 
 export function ApiActionsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const { t } = useTranslation();
   const { apiActions: apis, isLoading, saveAction, deleteAction, refreshActions } = useApiActions();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingApiId, setEditingApiId] = useState<string | null>(null);
@@ -86,7 +88,7 @@ export function ApiActionsModal({ isOpen, onClose }: { isOpen: boolean; onClose:
       refreshActions();
     } catch (error) {
       logStore.logError('Failed to save API action', error as Error);
-      toast.error('Failed to save API action');
+      toast.error(t('apiActions.failedToSave'));
     }
   };
 
@@ -101,7 +103,7 @@ export function ApiActionsModal({ isOpen, onClose }: { isOpen: boolean; onClose:
         const success = await deleteAction(deletingApiId);
 
         if (!success) {
-          toast.error('Failed to delete API action');
+          toast.error(t('apiActions.failedToDelete'));
         } else {
           // Remove from selected API actions if it exists
           const isSelected = selectedApiActions.some((api) => api.id === deletingApiId);
@@ -116,7 +118,7 @@ export function ApiActionsModal({ isOpen, onClose }: { isOpen: boolean; onClose:
         }
       } catch (error) {
         logStore.logError('Failed to delete API action', error as Error);
-        toast.error('Failed to delete API action');
+        toast.error(t('apiActions.failedToDelete'));
       }
 
       setDeleteDialogOpen(false);
@@ -165,43 +167,41 @@ export function ApiActionsModal({ isOpen, onClose }: { isOpen: boolean; onClose:
   const getAuthDisplay = (api: ApiActions) => {
     switch (api.authType) {
       case 'none':
-        return 'No authentication';
+        return t('apiActions.noAuthentication');
       case 'apiKey':
-        return 'API Key';
+        return t('apiActions.apiKey');
       case 'other':
-        return api.otherAuth?.description || 'Custom Auth';
+        return api.otherAuth?.description || t('apiActions.customAuth');
       default:
-        return 'Unknown';
+        return t('apiActions.unknown');
     }
   };
 
   const renderApiList = () => {
     if (isLoading) {
-      return <div className="p-4 text-center">Loading...</div>;
+      return <div className="p-4 text-center">{t('common.loading')}</div>;
     }
 
     return (
       <main className="container mx-auto mb-4">
         <div className="flex justify-between items-center mb-2">
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold">API Actions</h1>
+            <h1 className="text-2xl font-bold">{t('apiActions.title')}</h1>
           </div>
           <Button onClick={handleAddApi} className="rounded-full flex items-center gap-2">
             <Plus className="h-4 w-4" />
-            Add API
+            {t('apiActions.addApi')}
           </Button>
         </div>
 
         {apis.length === 0 ? (
           <div className="text-center py-8 border rounded-lg bg-gray-50 flex flex-col items-center justify-center">
-            <h3 className="text-lg font-medium mb-2">No APIs configured yet</h3>
-            <p className="text-gray-500 mb-2 max-w-md">Add your first API to start configuring actions for your GPT</p>
-            <p className="text-gray-500 mb-6 max-w-md text-sm">
-              Once added, you can select specific APIs to make available in your chat conversations
-            </p>
+            <h3 className="text-lg font-medium mb-2">{t('apiActions.noApisConfigured')}</h3>
+            <p className="text-gray-500 mb-2 max-w-md">{t('apiActions.noApisDescription')}</p>
+            <p className="text-gray-500 mb-6 max-w-md text-sm">{t('apiActions.selectApisDescription')}</p>
             <Button onClick={handleAddApi} className="rounded-full flex items-center gap-2 px-6" size="lg">
               <Plus className="h-4 w-4" />
-              Add your first API
+              {t('apiActions.addFirstApi')}
             </Button>
           </div>
         ) : (
@@ -209,12 +209,12 @@ export function ApiActionsModal({ isOpen, onClose }: { isOpen: boolean; onClose:
             <table className="w-full">
               <thead className="bg-gray-50 border-b">
                 <tr>
-                  <th className="w-10 py-3 px-2 text-center">Use</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-500">API Name</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-500">Server URL</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-500">Authentication</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-500">Actions</th>
-                  <th className="text-right py-3 px-4 font-medium text-gray-500">Options</th>
+                  <th className="w-10 py-3 px-2 text-center">{t('apiActions.use')}</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-500">{t('apiActions.apiName')}</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-500">{t('apiActions.serverUrl')}</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-500">{t('apiActions.authentication')}</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-500">{t('apiActions.actions')}</th>
+                  <th className="text-right py-3 px-4 font-medium text-gray-500">{t('apiActions.options')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -248,7 +248,7 @@ export function ApiActionsModal({ isOpen, onClose }: { isOpen: boolean; onClose:
                       </td>
                       <td className="py-4 px-4 font-medium">{api.name || 'Unnamed API'}</td>
                       <td className="py-4 px-4 text-gray-500 font-mono text-sm truncate max-w-[200px]">
-                        {api.serverUrl || <span className="text-gray-400">Not specified</span>}
+                        {api.serverUrl || <span className="text-gray-400">{t('apiActions.notSpecified')}</span>}
                       </td>
                       <td className="py-4 px-4 text-gray-500">
                         <div className="flex items-center">{getAuthDisplay(api)}</div>
@@ -261,10 +261,10 @@ export function ApiActionsModal({ isOpen, onClose }: { isOpen: boolean; onClose:
                               toggleRow(api.id!);
                             }}
                           >
-                            {api.actions.length} action{api.actions.length !== 1 ? 's' : ''}
+                            {api.actions.length} {t('apiActions.actions')}
                           </Button>
                         ) : (
-                          <span className="text-gray-400">No actions</span>
+                          <span className="text-gray-400">{t('apiActions.noActions')}</span>
                         )}
                       </td>
                       <td className="py-4 px-4 text-right flex items-center justify-end gap-2">
@@ -274,7 +274,7 @@ export function ApiActionsModal({ isOpen, onClose }: { isOpen: boolean; onClose:
                             e.stopPropagation(); // Prevent row click from triggering
                             handleEditApi(api.id!);
                           }}
-                          title="Edit API"
+                          title={t('apiActions.editApi')}
                         >
                           <Edit2 className="h-4 w-4" />
                         </Button>
@@ -286,7 +286,7 @@ export function ApiActionsModal({ isOpen, onClose }: { isOpen: boolean; onClose:
                             e.stopPropagation(); // Prevent row click from triggering
                             handleDeleteApi(api.id!);
                           }}
-                          title="Delete API"
+                          title={t('apiActions.deleteApi')}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -335,7 +335,7 @@ export function ApiActionsModal({ isOpen, onClose }: { isOpen: boolean; onClose:
           <div className="p-6 max-h-[80vh] overflow-y-auto">{renderApiList()}</div>
           <div className="flex justify-end gap-2 p-4 border-t border-gray-200">
             <Button className="rounded-full" onClick={onClose}>
-              Done
+              {t('apiActions.done')}
             </Button>
           </div>
         </Dialog>
@@ -353,17 +353,15 @@ export function ApiActionsModal({ isOpen, onClose }: { isOpen: boolean; onClose:
       <DialogRoot open={deleteDialogOpen}>
         <Dialog className="sm:max-w-md rounded-xl" onClose={() => setDeleteDialogOpen(false)}>
           <div className="p-6 pb-2">
-            <DialogTitle>Delete API Action</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this API action? This action cannot be undone.
-            </DialogDescription>
+            <DialogTitle>{t('apiActions.deleteApi')}</DialogTitle>
+            <DialogDescription>{t('apiActions.deleteConfirmation')}</DialogDescription>
           </div>
           <div className="flex justify-end gap-2 p-4 border-t border-gray-200">
             <Button variant="outline" className="rounded-full px-6" onClick={() => setDeleteDialogOpen(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button variant="destructive" className="rounded-full px-6" onClick={confirmDeleteApi}>
-              Delete
+              {t('common.delete')}
             </Button>
           </div>
         </Dialog>

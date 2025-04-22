@@ -8,6 +8,7 @@ import { Dialog, DialogRoot, DialogTitle, DialogDescription } from '~/components
 import yaml from 'js-yaml';
 import React from 'react';
 import type { ApiActions, ApiKeyAuth, OtherAuth } from '~/types/ApiTypes';
+import { useTranslation } from 'react-i18next';
 
 interface Action {
   name: string;
@@ -25,6 +26,7 @@ interface EditActionsModalProps {
 }
 
 export default function EditActionsModal({ isOpen, onClose, onSave, onAfterSave, editingApi }: EditActionsModalProps) {
+  const { t } = useTranslation();
   const [apiName, setApiName] = useState('');
   const [schemaContent, setSchemaContent] = useState('');
   const [serverUrl, setServerUrl] = useState('');
@@ -391,7 +393,7 @@ paths:
       >
         <Dialog className="w-full max-w-6xl max-h-[90vh] overflow-auto" onClose={onClose}>
           <div className="p-6 w-full">
-            <DialogTitle className="text-xl font-bold text-center mb-4">Edit actions</DialogTitle>
+            <DialogTitle className="text-xl font-bold text-center mb-4">{t('apiActionsModal.editActions')}</DialogTitle>
             <DialogDescription className="text-center text-gray-500 mb-4">
               {/* TODO: add description about what is openapi schema and add a link to 1. the openapi schema docs 2. Actions GPTs*/}
               {/* TODO: integrate Actions GPTs? */}
@@ -400,11 +402,11 @@ paths:
             <div className="space-y-5 py-2">
               <div>
                 <Label htmlFor="apiName" className="text-base font-semibold mb-1.5 block">
-                  API Name
+                  {t('apiActionsModal.apiName')}
                 </Label>
                 <Input
                   id="apiName"
-                  placeholder="Enter API name"
+                  placeholder={t('apiActionsModal.enterApiName')}
                   value={apiName}
                   onChange={(e) => setApiName(e.target.value)}
                   className="w-full"
@@ -412,27 +414,27 @@ paths:
               </div>
 
               <div>
-                <h2 className="text-base font-semibold mb-1.5">Authentication</h2>
+                <h2 className="text-base font-semibold mb-1.5">{t('apiActionsModal.authentication')}</h2>
                 <div className="space-y-4">
                   <RadioGroup value={authType} onValueChange={handleAuthTypeChange} className="flex gap-8">
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="none" id="none" />
-                      <Label htmlFor="none">None</Label>
+                      <Label htmlFor="none">{t('apiActionsModal.none')}</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="apiKey" id="apiKey" />
-                      <Label htmlFor="apiKey">API Key</Label>
+                      <Label htmlFor="apiKey">{t('apiActionsModal.apiKey')}</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="other" id="other" />
-                      <Label htmlFor="other">Other</Label>
+                      <Label htmlFor="other">{t('apiActionsModal.other')}</Label>
                     </div>
                   </RadioGroup>
 
                   {authType === 'apiKey' && (
                     <>
                       <div>
-                        <Label htmlFor="apiKey">API Key</Label>
+                        <Label htmlFor="apiKey">{t('apiActionsModal.apiKey')}</Label>
                         <Input
                           id="apiKey"
                           type="password"
@@ -442,7 +444,7 @@ paths:
                         />
                       </div>
                       <div className="space-y-1">
-                        <Label>Auth Type</Label>
+                        <Label>{t('apiActionsModal.authType')}</Label>
                         <RadioGroup
                           value={apiKeyAuthType}
                           onValueChange={handleApiKeyAuthTypeChange}
@@ -450,21 +452,21 @@ paths:
                         >
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="basic" id="basic" />
-                            <Label htmlFor="basic">Basic</Label>
+                            <Label htmlFor="basic">{t('apiActionsModal.basic')}</Label>
                           </div>
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="bearer" id="bearer" />
-                            <Label htmlFor="bearer">Bearer</Label>
+                            <Label htmlFor="bearer">{t('apiActionsModal.bearer')}</Label>
                           </div>
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="custom" id="custom" />
-                            <Label htmlFor="custom">Custom</Label>
+                            <Label htmlFor="custom">{t('apiActionsModal.custom')}</Label>
                           </div>
                         </RadioGroup>
                       </div>
                       {apiKeyAuthType === 'custom' && (
                         <div className="space-y-2">
-                          <Label htmlFor="customHeaderName">Custom Header Name</Label>
+                          <Label htmlFor="customHeaderName">{t('apiActionsModal.customHeaderName')}</Label>
                           <Input
                             id="customHeaderName"
                             type="text"
@@ -480,11 +482,11 @@ paths:
                   {authType === 'other' && (
                     <>
                       <div className="space-y-2">
-                        <Label htmlFor="otherAuthDescription">Description</Label>
+                        <Label htmlFor="otherAuthDescription">{t('apiActionsModal.description')}</Label>
                         <textarea
                           id="otherAuthDescription"
                           className="w-full p-2 border rounded-md resize-none"
-                          placeholder="Describe the authentication method"
+                          placeholder={t('apiActionsModal.describeAuthMethod')}
                           value={otherAuth.description}
                           onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                             setOtherAuth((prev) => ({ ...prev, description: e.target.value }))
@@ -492,7 +494,7 @@ paths:
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="otherAuthHeaders">Headers (JSON format)</Label>
+                        <Label htmlFor="otherAuthHeaders">{t('apiActionsModal.headers')}</Label>
                         <textarea
                           id="otherAuthHeaders"
                           className="w-full p-2 border rounded-md resize-none"
@@ -505,7 +507,7 @@ paths:
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="otherAuthQueryParams">Query Parameters (JSON format)</Label>
+                        <Label htmlFor="otherAuthQueryParams">{t('apiActionsModal.queryParams')}</Label>
                         <textarea
                           id="otherAuthQueryParams"
                           className="w-full p-2 border rounded-md resize-none"
@@ -524,13 +526,13 @@ paths:
 
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <h2 className="text-base font-semibold">Schema</h2>
+                  <h2 className="text-base font-semibold">{t('apiActionsModal.schema')}</h2>
                   <Button
                     variant="outline"
                     className="rounded-full flex items-center gap-1 text-sm py-1 px-3 h-auto"
                     onClick={handleLoadExample}
                   >
-                    Example
+                    {t('common.example')}
                   </Button>
                 </div>
 
@@ -547,13 +549,13 @@ paths:
               </div>
 
               <div>
-                <h2 className="text-base font-semibold mb-2">Available actions</h2>
+                <h2 className="text-base font-semibold mb-2">{t('apiActionsModal.availableActions')}</h2>
                 {actions.length > 0 ? (
                   <div className="grid grid-cols-[1fr_auto_2fr_2fr] gap-y-3 text-sm">
-                    <div className="text-gray-500 text-xs uppercase">Name</div>
-                    <div className="text-gray-500 text-xs uppercase">Method</div>
-                    <div className="text-gray-500 text-xs uppercase">Path</div>
-                    <div className="text-gray-500 text-xs uppercase">Summary</div>
+                    <div className="text-gray-500 text-xs uppercase">{t('apiActionsModal.name')}</div>
+                    <div className="text-gray-500 text-xs uppercase">{t('apiActionsModal.method')}</div>
+                    <div className="text-gray-500 text-xs uppercase">{t('apiActionsModal.path')}</div>
+                    <div className="text-gray-500 text-xs uppercase">{t('apiActionsModal.summary')}</div>
 
                     {actions.map((action, index) => (
                       <React.Fragment key={`action-${index}`}>
@@ -566,9 +568,7 @@ paths:
                   </div>
                 ) : (
                   <p className="text-gray-500 text-sm">
-                    {parseError
-                      ? 'Unable to parse schema. Please check the format and try again.'
-                      : 'No actions available. Add paths to your schema to see actions here.'}
+                    {parseError ? t('apiActionsModal.unableToParse') : t('apiActionsModal.noActionsAvailable')}
                   </p>
                 )}
               </div>
@@ -576,10 +576,10 @@ paths:
 
             <div className="pt-3 mt-4 border-t flex justify-end gap-2">
               <Button variant="outline" className="rounded-full px-4 py-1 h-auto" onClick={onClose}>
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button className="rounded-full px-4 py-1 h-auto" onClick={handleSave}>
-                Save API
+                {t('apiActionsModal.saveApi')}
               </Button>
             </div>
           </div>
@@ -590,14 +590,12 @@ paths:
       <DialogRoot open={confirmDialogOpen}>
         <Dialog className="sm:max-w-md rounded-xl" onClose={() => setConfirmDialogOpen(false)}>
           <div className="p-6 pb-2">
-            <DialogTitle>Replace Schema Content?</DialogTitle>
-            <DialogDescription>
-              The text area already contains content. Do you want to replace it with the example schema?
-            </DialogDescription>
+            <DialogTitle>{t('apiActionsModal.replaceSchemaContent')}</DialogTitle>
+            <DialogDescription>{t('apiActionsModal.replaceSchemaConfirm')}</DialogDescription>
           </div>
           <div className="flex justify-end gap-2 p-4 border-t border-gray-200">
             <Button variant="outline" className="rounded-full px-6" onClick={() => setConfirmDialogOpen(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button
               className="rounded-full px-6"
@@ -606,7 +604,7 @@ paths:
                 setConfirmDialogOpen(false);
               }}
             >
-              Replace
+              {t('apiActionsModal.replace')}
             </Button>
           </div>
         </Dialog>

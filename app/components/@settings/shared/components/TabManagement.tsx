@@ -4,11 +4,12 @@ import { useStore } from '@nanostores/react';
 import { Switch } from '~/components/ui/Switch';
 import { classNames } from '~/utils/classNames';
 import { tabConfigurationStore } from '~/lib/stores/settings';
-import { TAB_LABELS } from '~/components/@settings/core/constants';
+import { getTabLabel } from '~/components/@settings/core/constants';
 import type { TabType } from '~/components/@settings/core/types';
 import { toast } from 'react-toastify';
 import { TbLayoutGrid } from 'react-icons/tb';
 import { useSettingsStore } from '~/lib/stores/settings';
+import { useTranslation } from 'react-i18next';
 
 // Define tab icons mapping
 const TAB_ICONS: Record<TabType, string> = {
@@ -54,6 +55,7 @@ const BetaLabel = () => (
 );
 
 export const TabManagement = () => {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const tabConfiguration = useStore(tabConfigurationStore);
   const { setSelectedTab } = useSettingsStore();
@@ -126,7 +128,7 @@ export const TabManagement = () => {
   });
 
   // Filter tabs based on search query
-  const filteredTabs = allTabs.filter((tab) => TAB_LABELS[tab.id].toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredTabs = allTabs.filter((tab) => getTabLabel(tab.id).toLowerCase().includes(searchQuery.toLowerCase()));
 
   useEffect(() => {
     // Reset to first tab when component unmounts
@@ -156,7 +158,7 @@ export const TabManagement = () => {
               <TbLayoutGrid className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-md font-medium text-bolt-elements-textPrimary">Tab Management</h4>
+              <h4 className="text-md font-medium text-bolt-elements-textPrimary">{t('tabs.labels.tab-management')}</h4>
               <p className="text-sm text-bolt-elements-textSecondary">Configure visible tabs and their order</p>
             </div>
           </div>
@@ -170,7 +172,7 @@ export const TabManagement = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search tabs..."
+              placeholder={t('common.search')}
               className={classNames(
                 'w-full pl-10 pr-4 py-2 rounded-lg',
                 'bg-bolt-elements-background-depth-2',
@@ -190,7 +192,7 @@ export const TabManagement = () => {
           {filteredTabs.some((tab) => DEFAULT_USER_TABS.includes(tab.id)) && (
             <div className="col-span-full flex items-center gap-2 mt-4 mb-2">
               <div className="i-ph:star-fill w-4 h-4 text-purple-500" />
-              <span className="text-sm font-medium text-bolt-elements-textPrimary">Default Tabs</span>
+              <span className="text-sm font-medium text-bolt-elements-textPrimary">{t('tabs.labels.features')}</span>
             </div>
           )}
 
@@ -242,12 +244,12 @@ export const TabManagement = () => {
                       <div>
                         <div className="flex items-center gap-2">
                           <h4 className="text-sm font-medium text-bolt-elements-textPrimary group-hover:text-purple-500 transition-colors">
-                            {TAB_LABELS[tab.id]}
+                            {getTabLabel(tab.id)}
                           </h4>
                           {BETA_TABS.has(tab.id) && <BetaLabel />}
                         </div>
                         <p className="text-xs text-bolt-elements-textSecondary mt-0.5">
-                          {tab.visible ? 'Visible in user mode' : 'Hidden in user mode'}
+                          {tab.visible ? t('tabs.visible') : t('tabs.hidden')}
                         </p>
                       </div>
                       <Switch
@@ -284,7 +286,7 @@ export const TabManagement = () => {
           {filteredTabs.some((tab) => OPTIONAL_USER_TABS.includes(tab.id)) && (
             <div className="col-span-full flex items-center gap-2 mt-8 mb-2">
               <div className="i-ph:plus-circle-fill w-4 h-4 text-blue-500" />
-              <span className="text-sm font-medium text-bolt-elements-textPrimary">Optional Tabs</span>
+              <span className="text-sm font-medium text-bolt-elements-textPrimary">{t('tabs.optional')}</span>
             </div>
           )}
 
@@ -309,7 +311,7 @@ export const TabManagement = () => {
                 {/* Status Badges */}
                 <div className="absolute top-1 right-1.5 flex gap-1">
                   <span className="px-1.5 py-0.25 text-xs rounded-full bg-blue-500/10 text-blue-500 font-medium mr-2">
-                    Optional
+                    {t('tabs.optional')}
                   </span>
                 </div>
 
@@ -336,12 +338,12 @@ export const TabManagement = () => {
                       <div>
                         <div className="flex items-center gap-2">
                           <h4 className="text-sm font-medium text-bolt-elements-textPrimary group-hover:text-purple-500 transition-colors">
-                            {TAB_LABELS[tab.id]}
+                            {getTabLabel(tab.id)}
                           </h4>
                           {BETA_TABS.has(tab.id) && <BetaLabel />}
                         </div>
                         <p className="text-xs text-bolt-elements-textSecondary mt-0.5">
-                          {tab.visible ? 'Visible in user mode' : 'Hidden in user mode'}
+                          {tab.visible ? t('tabs.visible') : t('tabs.hidden')}
                         </p>
                       </div>
                       <Switch

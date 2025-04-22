@@ -19,10 +19,11 @@ import {
 } from '~/lib/stores/settings';
 import { profileStore } from '~/lib/stores/profile';
 import type { TabType, TabVisibilityConfig, Profile } from './types';
-import { TAB_LABELS, DEFAULT_TAB_CONFIG } from './constants';
+import { DEFAULT_TAB_CONFIG, getTabLabel, getTabDescription } from './constants';
 import { DialogTitle } from '~/components/ui/Dialog';
 import { AvatarDropdown } from './AvatarDropdown';
 import BackgroundRays from '~/components/ui/BackgroundRays';
+import { useTranslation } from 'react-i18next';
 
 // Import all tab components
 import ProfileTab from '~/components/@settings/tabs/profile/ProfileTab';
@@ -65,23 +66,6 @@ interface AnimatedSwitchProps {
   id: string;
   label: string;
 }
-
-const TAB_DESCRIPTIONS: Record<TabType, string> = {
-  profile: 'Manage your profile and account settings',
-  settings: 'Configure application preferences',
-  notifications: 'View and manage your notifications',
-  features: 'Explore new and upcoming features',
-  data: 'Manage your data and storage',
-  'cloud-providers': 'Configure cloud AI providers and models',
-  'local-providers': 'Configure local AI providers and models',
-  'service-status': 'Monitor cloud LLM service status',
-  connection: 'Check connection status and settings',
-  debug: 'Debug tools and system information',
-  'event-logs': 'View system events and logs',
-  update: 'Check for updates and release notes',
-  'task-manager': 'Monitor system resources and processes',
-  'tab-management': 'Configure visible tabs and their order',
-};
 
 // Beta status for experimental features
 const BETA_TABS = new Set<TabType>(['task-manager', 'service-status', 'update', 'local-providers']);
@@ -157,6 +141,7 @@ export const ControlPanel = ({ open, onClose }: ControlPanelProps) => {
   const [activeTab, setActiveTab] = useState<TabType | null>(null);
   const [loadingTab, setLoadingTab] = useState<TabType | null>(null);
   const [showTabManagement, setShowTabManagement] = useState(false);
+  const { t } = useTranslation();
 
   // Store values
   const tabConfiguration = useStore(tabConfigurationStore);
@@ -460,7 +445,11 @@ export const ControlPanel = ({ open, onClose }: ControlPanelProps) => {
                       </button>
                     )}
                     <DialogTitle className="text-xl font-semibold text-gray-900 dark:text-white">
-                      {showTabManagement ? 'Tab Management' : activeTab ? TAB_LABELS[activeTab] : 'Control Panel'}
+                      {showTabManagement
+                        ? t('tabs.labels.tab-management')
+                        : activeTab
+                          ? getTabLabel(activeTab)
+                          : t('common.settings')}
                     </DialogTitle>
                   </div>
 
@@ -471,7 +460,7 @@ export const ControlPanel = ({ open, onClose }: ControlPanelProps) => {
                         id="developer-mode"
                         checked={developerMode}
                         onCheckedChange={handleDeveloperModeChange}
-                        label={developerMode ? 'Developer Mode' : 'User Mode'}
+                        label={developerMode ? t('settings.developerMode') : t('settings.userMode')}
                       />
                     </div>
 
@@ -532,7 +521,7 @@ export const ControlPanel = ({ open, onClose }: ControlPanelProps) => {
                                 isActive={activeTab === tab.id}
                                 hasUpdate={getTabUpdateStatus(tab.id)}
                                 statusMessage={getStatusMessage(tab.id)}
-                                description={TAB_DESCRIPTIONS[tab.id]}
+                                description={getTabDescription(tab.id)}
                                 isLoading={loadingTab === tab.id}
                                 className="h-full relative"
                               >

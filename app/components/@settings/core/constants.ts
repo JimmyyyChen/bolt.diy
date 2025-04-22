@@ -1,4 +1,5 @@
 import type { TabType } from './types';
+import i18n from 'i18next';
 
 export const TAB_ICONS: Record<TabType, string> = {
   profile: 'i-ph:user-circle-fill',
@@ -17,6 +18,7 @@ export const TAB_ICONS: Record<TabType, string> = {
   'tab-management': 'i-ph:squares-four-fill',
 };
 
+// Fallback labels in case translation is not available
 export const TAB_LABELS: Record<TabType, string> = {
   profile: 'Profile',
   settings: 'Settings',
@@ -34,6 +36,7 @@ export const TAB_LABELS: Record<TabType, string> = {
   'tab-management': 'Tab Management',
 };
 
+// Fallback descriptions in case translation is not available
 export const TAB_DESCRIPTIONS: Record<TabType, string> = {
   profile: 'Manage your profile and account settings',
   settings: 'Configure application preferences',
@@ -49,6 +52,24 @@ export const TAB_DESCRIPTIONS: Record<TabType, string> = {
   update: 'Check for updates and release notes',
   'task-manager': 'Monitor system resources and processes',
   'tab-management': 'Configure visible tabs and their order',
+};
+
+// Get translated tab label
+export const getTabLabel = (tabType: TabType): string => {
+  const translationKey = `tabs.labels.${tabType}`;
+  const translated = i18n.t(translationKey);
+
+  // If translation key is returned instead of a translated string, use fallback
+  return translated === translationKey ? TAB_LABELS[tabType] : translated;
+};
+
+// Get translated tab description
+export const getTabDescription = (tabType: TabType): string => {
+  const translationKey = `tabs.descriptions.${tabType}`;
+  const translated = i18n.t(translationKey);
+
+  // If translation key is returned instead of a translated string, use fallback
+  return translated === translationKey ? TAB_DESCRIPTIONS[tabType] : translated;
 };
 
 export const DEFAULT_TAB_CONFIG = [

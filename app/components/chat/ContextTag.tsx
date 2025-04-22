@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 export interface TagItem {
   id: string;
@@ -24,6 +25,8 @@ export function ContextTags<T extends TagItem>({
   addButtonText,
   addButtonIcon,
 }: ContextTagsProps<T>) {
+  const { t } = useTranslation();
+
   return (
     <div className="flex flex-nowrap items-center gap-1 min-w-0">
       {items.map((item) => (
@@ -39,7 +42,7 @@ export function ContextTags<T extends TagItem>({
               e.stopPropagation();
               onRemove(item.id);
             }}
-            aria-label={`Remove ${item.name}`}
+            aria-label={t('testContext.removeTestCode')}
           />
           {item.name}
         </div>

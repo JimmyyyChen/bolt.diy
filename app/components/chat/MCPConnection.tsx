@@ -3,6 +3,7 @@ import { classNames } from '~/utils/classNames';
 import { Dialog, DialogRoot, DialogClose, DialogTitle, DialogButton } from '~/components/ui/Dialog';
 import { useMCPConfig, type MCPConfig } from '~/lib/hooks/useMCPConfig';
 import { IconButton } from '~/components/ui/IconButton';
+import { useTranslation } from 'react-i18next';
 
 // Example MCP configuration that users can load
 const EXAMPLE_MCP_CONFIG: MCPConfig = {
@@ -27,6 +28,7 @@ type ServerErrors = Record<string, string>;
 type ServerTools = Record<string, any>;
 
 export function McpConnection() {
+  const { t } = useTranslation();
   const { config, updateConfig, lastUpdate, isLoading } = useMCPConfig();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [configText, setConfigText] = useState('');
@@ -74,9 +76,9 @@ export function McpConnection() {
       }
     } catch (e) {
       setConfigTextParsed(null);
-      setError(`Invalid JSON format: ${e instanceof Error ? e.message : String(e)}`);
+      setError(`${t('mcp.invalidJson')}: ${e instanceof Error ? e.message : String(e)}`);
     }
-  }, [configText, error]);
+  }, [configText, error, t]);
 
   const handleSave = () => {
     try {
@@ -85,7 +87,7 @@ export function McpConnection() {
       setError(null);
       setIsDialogOpen(false);
     } catch {
-      setError('Invalid JSON format');
+      setError(t('mcp.invalidJson'));
     }
   };
 
@@ -137,7 +139,7 @@ export function McpConnection() {
         setCheckingServers(false);
       }
     } catch (e) {
-      setError(`Invalid JSON format: ${e instanceof Error ? e.message : String(e)}`);
+      setError(`${t('mcp.invalidJson')}: ${e instanceof Error ? e.message : String(e)}`);
       setCheckingServers(false);
     }
   };
@@ -170,11 +172,11 @@ export function McpConnection() {
       return (
         <div className="mt-2 ml-4 p-2 rounded-md bg-bolt-elements-background-depth-2 text-xs font-mono">
           <div className="font-medium mb-1">{toolName}</div>
-          <div className="text-bolt-elements-textSecondary">{toolSchema.description || 'No description available'}</div>
+          <div className="text-bolt-elements-textSecondary">{toolSchema.description || t('mcp.noDescription')}</div>
 
           {Object.keys(parameters).length > 0 && (
             <div className="mt-2">
-              <div className="font-medium mb-1">Parameters:</div>
+              <div className="font-medium mb-1">{t('mcp.parameters')}</div>
               <div className="ml-2 space-y-1">
                 {Object.entries(parameters).map(([paramName, paramDetails]: [string, any]) => (
                   <div key={paramName}>
@@ -208,9 +210,9 @@ export function McpConnection() {
     };
 
     const text = {
-      checking: 'Checking...',
-      available: 'Available',
-      unavailable: 'Unavailable',
+      checking: t('mcp.checking'),
+      available: t('mcp.available'),
+      unavailable: t('mcp.unavailable'),
     };
 
     const icon =
@@ -228,13 +230,13 @@ export function McpConnection() {
 
   const renderServerList = () => {
     if (!configTextParsed?.mcpServers) {
-      return <p className="text-sm text-bolt-elements-textSecondary">Invalid configuration or no servers defined</p>;
+      return <p className="text-sm text-bolt-elements-textSecondary">{t('mcp.invalidJson')}</p>;
     }
 
     const serverEntries = Object.entries(configTextParsed.mcpServers);
 
     if (serverEntries.length === 0) {
-      return <p className="text-sm text-bolt-elements-textSecondary">No MCP servers configured</p>;
+      return <p className="text-sm text-bolt-elements-textSecondary">{t('mcp.noServers')}</p>;
     }
 
     return (
@@ -275,15 +277,17 @@ export function McpConnection() {
 
               {/* Display error message if server is unavailable */}
               {statusKnown && !isAvailable && errorMessage && (
-                <div className="mt-1 ml-4 text-xs text-red-600 dark:text-red-400">Error: {errorMessage}</div>
+                <div className="mt-1 ml-4 text-xs text-red-600 dark:text-red-400">
+                  {t('mcp.serverError')} {errorMessage}
+                </div>
               )}
 
               {/* Display tool schemas if server is expanded */}
               {isExpanded && statusKnown && isAvailable && serverToolsData && (
                 <div className="mt-2">
-                  <div className="text-xs font-medium ml-2 mb-1">Available Tools:</div>
+                  <div className="text-xs font-medium ml-2 mb-1">{t('mcp.availableTools')}</div>
                   {Object.keys(serverToolsData).length === 0 ? (
-                    <div className="ml-4 text-xs text-bolt-elements-textSecondary">No tools available</div>
+                    <div className="ml-4 text-xs text-bolt-elements-textSecondary">{t('mcp.noTools')}</div>
                   ) : (
                     <div className="mt-1 space-y-2">
                       {Object.entries(serverToolsData).map(([toolName, toolSchema]) => (
@@ -318,13 +322,13 @@ export function McpConnection() {
             <div className="space-y-4 max-h-[80vh] overflow-y-auto pr-2">
               <DialogTitle>
                 <img className="w-5 h-5" height="24" width="24" src="/icons/mcp.svg" alt="MCP" />
-                MCP Configuration
+                {t('mcp.title')}
               </DialogTitle>
 
               <div className="space-y-4">
                 <div>
                   <div className="flex justify-between items-center mb-2">
-                    <label className="text-sm text-bolt-elements-textSecondary">Configured MCP Servers</label>
+                    <label className="text-sm text-bolt-elements-textSecondary">{t('mcp.configuredServers')}</label>
                     <button
                       onClick={checkServerAvailability}
                       disabled={
@@ -344,14 +348,14 @@ export function McpConnection() {
                       ) : (
                         <div className="i-ph:arrow-counter-clockwise w-3 h-3" />
                       )}
-                      Check availability
+                      {t('mcp.checkAvailability')}
                     </button>
                   </div>
                   {renderServerList()}
                 </div>
 
                 <div>
-                  <label className="block text-sm text-bolt-elements-textSecondary mb-2">Configuration JSON</label>
+                  <label className="block text-sm text-bolt-elements-textSecondary mb-2">{t('mcp.configJson')}</label>
                   <textarea
                     value={configText}
                     onChange={(e) => setConfigText(e.target.value)}
@@ -368,14 +372,14 @@ export function McpConnection() {
                   {error && <p className="mt-2 text-sm text-bolt-elements-icon-error">{error}</p>}
 
                   <div className="mt-2 text-sm text-bolt-elements-textSecondary">
-                    The MCP configuration format is identical to the one used in Claude Desktop.
+                    {t('mcp.description')}
                     <a
                       href="https://modelcontextprotocol.io/examples"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-bolt-elements-link hover:underline inline-flex items-center gap-1"
                     >
-                      View example servers
+                      {t('mcp.viewExamples')}
                       <div className="i-ph:arrow-square-out w-4 h-4" />
                     </a>
                   </div>
@@ -389,12 +393,12 @@ export function McpConnection() {
                     bg-bolt-elements-background-depth-2 text-bolt-elements-textSecondary
                     hover:bg-bolt-elements-background-depth-3"
                 >
-                  Load Example
+                  {t('mcp.loadExample')}
                 </button>
 
                 <div className="flex gap-2">
                   <DialogClose asChild>
-                    <DialogButton type="secondary">Cancel</DialogButton>
+                    <DialogButton type="secondary">{t('common.cancel')}</DialogButton>
                   </DialogClose>
                   <button
                     onClick={handleSave}
@@ -403,7 +407,7 @@ export function McpConnection() {
                       hover:bg-bolt-elements-item-backgroundActive"
                   >
                     <div className="i-ph:floppy-disk w-4 h-4" />
-                    Save Configuration
+                    {t('mcp.saveConfiguration')}
                   </button>
                 </div>
               </div>

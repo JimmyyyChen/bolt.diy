@@ -182,6 +182,9 @@ export const ChatImpl = memo(
         files,
         promptId,
         contextOptimization: contextOptimizationEnabled,
+        language: localStorage.getItem('bolt_user_profile')
+          ? JSON.parse(localStorage.getItem('bolt_user_profile') || '{}').language || 'en'
+          : 'en',
         supabase: {
           isConnected: supabaseConn.isConnected,
           hasSelectedProject: !!selectedProject,

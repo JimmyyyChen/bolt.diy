@@ -12,6 +12,7 @@ import { WORK_DIR } from '~/utils/constants';
 import { createSummary } from '~/lib/.server/llm/create-summary';
 import { extractPropertiesFromMessage } from '~/lib/.server/llm/utils';
 import { createMCPClients, closeMCPClients } from '~/lib/services/mcp';
+import { getProgressMessages } from '~/lib/.server/i18n';
 
 export async function action(args: ActionFunctionArgs) {
   return chatAction(args);
@@ -38,11 +39,12 @@ function parseCookies(cookieHeader: string): Record<string, string> {
 }
 
 async function chatAction({ context, request }: ActionFunctionArgs) {
-  const { messages, files, promptId, contextOptimization, supabase, mcpConfig } = await request.json<{
+  const { messages, files, promptId, contextOptimization, language, supabase, mcpConfig } = await request.json<{
     messages: Messages;
     files: any;
     promptId?: string;
     contextOptimization: boolean;
+    language?: string;
     supabase?: {
       isConnected: boolean;
       hasSelectedProject: boolean;
@@ -65,10 +67,27 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
   }>();
 
   const cookieHeader = request.headers.get('Cookie');
-  const apiKeys = JSON.parse(parseCookies(cookieHeader || '').apiKeys || '{}');
-  const providerSettings: Record<string, IProviderSetting> = JSON.parse(
-    parseCookies(cookieHeader || '').providers || '{}',
-  );
+  const cookies = parseCookies(cookieHeader || '');
+  const apiKeys = JSON.parse(cookies.apiKeys || '{}');
+  const providerSettings: Record<string, IProviderSetting> = JSON.parse(cookies.providers || '{}');
+
+  // Determine language preference - first try the request body parameter, then accept-language header
+  let userLanguage = 'en';
+
+  if (language === 'zh') {
+    // Use language provided in the request if available
+    userLanguage = 'zh';
+  } else {
+    // Fallback to browser accept-language header
+    const acceptLanguage = request.headers.get('Accept-Language') || '';
+
+    if (acceptLanguage.includes('zh')) {
+      userLanguage = 'zh';
+    }
+  }
+
+  // Get the appropriate messages based on language using the i18n utility
+  const messagesI18n = getProgressMessages(userLanguage);
 
   const stream = new SwitchableStream();
 
@@ -104,7 +123,7 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
             label: 'summary',
             status: 'in-progress',
             order: progressCounter++,
-            message: 'Analysing Request',
+            message: messagesI18n.analysisRequest,
           } satisfies ProgressAnnotation);
 
           // Create a summary of the chat
@@ -131,7 +150,7 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
             label: 'summary',
             status: 'complete',
             order: progressCounter++,
-            message: 'Analysis Complete',
+            message: messagesI18n.analysisComplete,
           } satisfies ProgressAnnotation);
 
           dataStream.writeMessageAnnotation({
@@ -147,7 +166,7 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
             label: 'context',
             status: 'in-progress',
             order: progressCounter++,
-            message: 'Determining Files to Read',
+            message: messagesI18n.determiningFiles,
           } satisfies ProgressAnnotation);
 
           // Select context files
@@ -193,7 +212,7 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
             label: 'context',
             status: 'complete',
             order: progressCounter++,
-            message: 'Code Files Selected',
+            message: messagesI18n.filesSelected,
           } satisfies ProgressAnnotation);
         }
 
@@ -218,7 +237,7 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
                   label: 'tool',
                   status: 'in-progress',
                   order: progressCounter++,
-                  message: `Running tool: ${toolName}`,
+                  message: messagesI18n.runningTool(toolName),
                 } satisfies ProgressAnnotation);
 
                 if (toolResult) {
@@ -230,7 +249,7 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
                     label: 'tool',
                     status: 'complete',
                     order: progressCounter++,
-                    message: `MCP Tool '${toolName}' executed successfully`,
+                    message: messagesI18n.toolExecuted(toolName),
                   } satisfies ProgressAnnotation);
                 } else {
                   logger.warn(`MCP Tool '${toolName}' didn't return a result`);
@@ -241,7 +260,7 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
                     label: 'tool',
                     status: 'complete',
                     order: progressCounter++,
-                    message: `MCP Tool '${toolName}' completed with no result`,
+                    message: messagesI18n.toolNoResult(toolName),
                   } satisfies ProgressAnnotation);
                 }
               });
@@ -273,7 +292,7 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
                 label: 'response',
                 status: 'complete',
                 order: progressCounter++,
-                message: 'Response Generated',
+                message: messagesI18n.responseGenerated,
               } satisfies ProgressAnnotation);
               await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -334,7 +353,7 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
           label: 'response',
           status: 'in-progress',
           order: progressCounter++,
-          message: 'Generating Response',
+          message: messagesI18n.generatingResponse,
         } satisfies ProgressAnnotation);
 
         const result = await streamText({

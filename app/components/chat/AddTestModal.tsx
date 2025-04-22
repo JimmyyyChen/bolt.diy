@@ -11,6 +11,7 @@ import 'prismjs/themes/prism.css';
 import { classNames } from '~/utils/classNames';
 import { INITIAL_TEST_CODE } from '~/utils/constants';
 import type { TestCase, TestSuite, TestItem, TestCodeItem } from '~/types/test';
+import { useTranslation } from 'react-i18next';
 
 // Helper functions for parsing test files
 const findTestPositions = (code: string): Map<string, { start: number; end: number }> => {
@@ -188,15 +189,15 @@ function TestEditor({
   setTestCode: (code: string) => void;
   currentName: string;
   setCurrentName: (name: string) => void;
-  onSave: () => void;
 }) {
+  const { t } = useTranslation();
   const [testStructure, setTestStructure] = useState<TestItem[]>([]);
   const [selectedTest, setSelectedTest] = useState<TestCase | undefined>();
   const editorRef = useRef<HTMLDivElement>(null);
 
   const highlightCode = (code: string) => {
     if (!code.trim()) {
-      return '<span class="text-bolt-elements-textTertiary">Paste your test file here...</span>';
+      return `<span class="text-bolt-elements-textTertiary">${t('testContext.pasteTestFile')}</span>`;
     }
 
     if (!selectedTest?.lineNumber || !selectedTest?.endLineNumber) {
@@ -281,18 +282,18 @@ function TestEditor({
     <div>
       <div className="flex justify-between mb-4 items-center">
         <div className="flex items-center gap-2">
-          <h2 className="text-lg font-semibold">Jest Test</h2>
+          <h2 className="text-lg font-semibold">{t('testContext.jestTest')}</h2>
           <input
             type="text"
             value={currentName}
             onChange={(e) => setCurrentName(e.target.value)}
-            placeholder="Test name..."
+            placeholder={t('testContext.testName')}
             className="px-2 py-1 text-sm border rounded-md"
           />
         </div>
         <Button variant="ghost" size="sm" className="text-xs flex items-center gap-1" onClick={loadExampleCode}>
           <Code size={14} />
-          <span>Example</span>
+          <span>{t('common.example')}</span>
         </Button>
       </div>
       <div className="flex h-[450px] border overflow-hidden">
@@ -322,6 +323,7 @@ function TestEditor({
 
 // Main AddTestModal component
 export function AddTestModal({ isOpen, onClose, testId }: { isOpen: boolean; onClose: () => void; testId?: string }) {
+  const { t } = useTranslation();
   const { testCodes = [] } = useStore(chatStore);
   const [currentTestCode, setCurrentTestCode] = useState('');
   const [currentTestName, setCurrentTestName] = useState('');
@@ -394,15 +396,14 @@ export function AddTestModal({ isOpen, onClose, testId }: { isOpen: boolean; onC
             setTestCode={setCurrentTestCode}
             currentName={currentTestName}
             setCurrentName={setCurrentTestName}
-            onSave={handleSaveTestCode}
           />
         </div>
         <div className="flex justify-end p-4 border-t gap-3">
           <Button variant="secondary" className="rounded-full" onClick={onClose}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button className="rounded-full" onClick={handleSaveTestCode}>
-            Save
+            {t('common.save')}
           </Button>
         </div>
       </Dialog>

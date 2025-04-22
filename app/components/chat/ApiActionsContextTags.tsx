@@ -8,8 +8,10 @@ import type { ApiActions } from '~/types/ApiTypes';
 import { useApiActions } from '~/lib/persistence/useApiActions';
 import { toast } from 'react-toastify';
 import { logStore } from '~/lib/stores/logs';
+import { useTranslation } from 'react-i18next';
 
 export function ApiActionsContextTags() {
+  const { t } = useTranslation();
   const [isApiModalOpen, setIsApiModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingApi, setEditingApi] = useState<ApiActions | undefined>();
@@ -61,7 +63,7 @@ export function ApiActionsContextTags() {
       setIsEditModalOpen(false);
     } catch (error) {
       logStore.logError('Failed to save API action', error as Error);
-      toast.error('Failed to save API action');
+      toast.error(t('apiActions.failedToSave'));
     }
   };
 
@@ -85,7 +87,7 @@ export function ApiActionsContextTags() {
         onAddClick={handleOpenApiModal}
         onItemClick={handleItemClick}
         tagIcon="i-ph:plug"
-        addButtonText="Add API Actions"
+        addButtonText={t('apiActions.addAction')}
         addButtonIcon="i-ph:plus-circle-fill"
       />
       <ApiActionsModal isOpen={isApiModalOpen} onClose={() => setIsApiModalOpen(false)} />
