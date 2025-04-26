@@ -127,11 +127,11 @@ export default function FeaturesTab() {
     }
 
     if (contextOptimizationEnabled === undefined) {
-      enableContextOptimization(true); // Default: ON - Enable context optimization
+      enableContextOptimization(false); // Default: OFF - Disable context optimization
     }
 
     if (autoSelectTemplate === undefined) {
-      setAutoSelectTemplate(true); // Default: ON - Enable auto-select templates
+      setAutoSelectTemplate(false); // Default: OFF - Disable auto-select templates
     }
 
     if (promptId === undefined) {
@@ -193,7 +193,7 @@ export default function FeaturesTab() {
         description: 'Automatically select starter template',
         icon: 'i-ph:selection',
         enabled: autoSelectTemplate,
-        tooltip: 'Enabled by default to automatically select the most appropriate starter template',
+        tooltip: 'Disabled by default. When enabled, automatically selects the most appropriate starter template',
       },
       {
         id: 'contextOptimization',
@@ -201,7 +201,7 @@ export default function FeaturesTab() {
         description: 'Optimize context for better responses',
         icon: 'i-ph:brain',
         enabled: contextOptimizationEnabled,
-        tooltip: 'Enabled by default for improved AI responses',
+        tooltip: 'Disabled by default. When enabled, optimizes context for improved AI responses',
       },
       {
         id: 'eventLogs',

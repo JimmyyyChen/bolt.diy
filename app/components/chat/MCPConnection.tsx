@@ -12,10 +12,6 @@ const EXAMPLE_MCP_CONFIG: MCPConfig = {
       command: 'npx',
       args: ['-y', '@modelcontextprotocol/server-everything'],
     },
-    git: {
-      command: 'uvx',
-      args: ['mcp-server-git'],
-    },
     'remote-sse': {
       type: 'sse',
       url: 'http://localhost:8000/sse',
