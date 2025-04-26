@@ -1,6 +1,6 @@
 import { useStore } from '@nanostores/react';
-import type { LinksFunction } from '@remix-run/cloudflare';
-import { Links, Meta, Outlet, Scripts, ScrollRestoration } from '@remix-run/react';
+import type { LinksFunction, LoaderFunctionArgs } from '@remix-run/cloudflare';
+import { Links, Meta, Outlet, Scripts, ScrollRestoration, useLoaderData } from '@remix-run/react';
 import tailwindReset from '@unocss/reset/tailwind-compat.css?url';
 import { themeStore } from './lib/stores/theme';
 import { createHead } from 'remix-island';
@@ -8,6 +8,7 @@ import { useEffect } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { ClientOnly } from 'remix-utils/client-only';
+import i18n, { changeLanguage } from './i18n';
 
 import reactToastifyStyles from 'react-toastify/dist/ReactToastify.css?url';
 import globalStyles from './styles/index.scss?url';
@@ -62,6 +63,20 @@ export const links: LinksFunction = () => [
  * `;
  */
 
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const url = new URL(request.url);
+  const isChinese = url.pathname.startsWith('/cn');
+
+  // Set initial language based on URL path
+  if (isChinese) {
+    i18n.changeLanguage('zh');
+  }
+
+  return new Response(JSON.stringify({ language: isChinese ? 'zh' : 'en' }), {
+    headers: { 'Content-Type': 'application/json' },
+  });
+};
+
 export const Head = createHead(() => (
   <>
     <meta charSet="utf-8" />
@@ -73,12 +88,17 @@ export const Head = createHead(() => (
   </>
 ));
 
-export function Layout({ children }: { children: React.ReactNode }) {
+export function Layout({ children, language }: { children: React.ReactNode; language?: string }) {
   const theme = useStore(themeStore);
 
   useEffect(() => {
     document.querySelector('html')?.setAttribute('data-theme', theme);
-  }, [theme]);
+
+    // If language is provided from loader, update it
+    if (language) {
+      changeLanguage(language);
+    }
+  }, [theme, language]);
 
   return (
     <>
@@ -93,10 +113,12 @@ import { logStore } from './lib/stores/logs';
 
 export default function App() {
   const theme = useStore(themeStore);
+  const { language } = useLoaderData<{ language: string }>();
 
   useEffect(() => {
     logStore.logSystem('Application initialized', {
       theme,
+      language,
       platform: navigator.platform,
       userAgent: navigator.userAgent,
       timestamp: new Date().toISOString(),
@@ -104,7 +126,7 @@ export default function App() {
   }, []);
 
   return (
-    <Layout>
+    <Layout language={language}>
       <Outlet />
     </Layout>
   );

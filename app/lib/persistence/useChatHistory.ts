@@ -338,7 +338,12 @@ ${value.content}
 
       try {
         const newId = await duplicateChat(db, mixedId || listItemId);
-        navigate(`/chat/${newId}`);
+
+        // Preserve language prefix in URL if present
+        const url = new URL(window.location.href);
+        const languagePrefix = url.pathname.startsWith('/cn') ? '/cn' : '';
+        navigate(`${languagePrefix}/chat/${newId}`);
+
         toast.success('Chat duplicated successfully');
       } catch (error) {
         toast.error('Failed to duplicate chat');
@@ -352,7 +357,12 @@ ${value.content}
 
       try {
         const newId = await createChatFromMessages(db, description, messages, metadata);
-        window.location.href = `/chat/${newId}`;
+
+        // Preserve language prefix in URL if present
+        const url = new URL(window.location.href);
+        const languagePrefix = url.pathname.startsWith('/cn') ? '/cn' : '';
+        window.location.href = `${languagePrefix}/chat/${newId}`;
+
         toast.success('Chat imported successfully');
       } catch (error) {
         if (error instanceof Error) {
@@ -394,7 +404,10 @@ function navigateChat(nextId: string) {
    * `navigate(`/chat/${nextId}`, { replace: true });`
    */
   const url = new URL(window.location.href);
-  url.pathname = `/chat/${nextId}`;
+
+  // Preserve language prefix in URL if present
+  const languagePrefix = url.pathname.startsWith('/cn') ? '/cn' : '';
+  url.pathname = `${languagePrefix}/chat/${nextId}`;
 
   window.history.replaceState({}, '', url);
 }

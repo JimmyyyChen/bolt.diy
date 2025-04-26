@@ -69,6 +69,27 @@ export const changeLanguage = (lng: string) => {
     const userProfile = JSON.parse(localStorage.getItem('bolt_user_profile') || '{}');
     userProfile.language = lng;
     localStorage.setItem('bolt_user_profile', JSON.stringify(userProfile));
+
+    // Update the URL if we're in a browser context
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      const currentPath = url.pathname;
+
+      // If changing to Chinese, add /cn prefix if not already present
+      if (lng === 'zh') {
+        // Only add /cn if it's not already there
+        if (!currentPath.startsWith('/cn')) {
+          // Handle root path specially
+          const newPath = currentPath === '/' ? '/cn' : `/cn${currentPath}`;
+          window.history.replaceState(null, '', newPath + url.search + url.hash);
+        }
+      }
+      // If changing to English, remove /cn prefix
+      else if (lng === 'en' && currentPath.startsWith('/cn')) {
+        const newPath = currentPath === '/cn' ? '/' : currentPath.substring(3);
+        window.history.replaceState(null, '', newPath + url.search + url.hash);
+      }
+    }
   } catch (error) {
     console.error('Error updating language in user profile:', error);
   }
