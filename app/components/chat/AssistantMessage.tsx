@@ -4,6 +4,8 @@ import type { JSONValue } from 'ai';
 import Popover from '~/components/ui/Popover';
 import { workbenchStore } from '~/lib/stores/workbench';
 import { WORK_DIR } from '~/utils/constants';
+import { ToolInvocation } from './ToolInvocation';
+import type { ToolInvocationAnnotation } from '~/types/context';
 
 interface AssistantMessageProps {
   content: string;
@@ -50,6 +52,10 @@ export const AssistantMessage = memo(({ content, annotations }: AssistantMessage
   if (filteredAnnotations.find((annotation) => annotation.type === 'codeContext')) {
     codeContext = filteredAnnotations.find((annotation) => annotation.type === 'codeContext')?.files;
   }
+
+  const toolInvocations = filteredAnnotations.filter(
+    (annotation) => annotation.type === 'toolInvocation',
+  ) as ToolInvocationAnnotation[];
 
   const usage: {
     completionTokens: number;
@@ -108,6 +114,7 @@ export const AssistantMessage = memo(({ content, annotations }: AssistantMessage
         </div>
       </>
       <Markdown html>{content}</Markdown>
+      {toolInvocations.length > 0 && <ToolInvocation toolInvocations={toolInvocations} />}
     </div>
   );
 });

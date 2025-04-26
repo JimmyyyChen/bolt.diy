@@ -246,6 +246,14 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
                     order: progressCounter++,
                     message: messagesI18n.toolExecuted(toolName),
                   } satisfies ProgressAnnotation);
+
+                  // Add tool invocation annotation
+                  dataStream.writeMessageAnnotation({
+                    type: 'toolInvocation',
+                    toolName,
+                    parameters: toolCall.args,
+                    result: toolResult,
+                  });
                 } else {
                   logger.warn(`MCP Tool '${toolName}' didn't return a result`);
 
@@ -257,6 +265,14 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
                     order: progressCounter++,
                     message: messagesI18n.toolNoResult(toolName),
                   } satisfies ProgressAnnotation);
+
+                  // Add tool invocation annotation even without result
+                  dataStream.writeMessageAnnotation({
+                    type: 'toolInvocation',
+                    toolName,
+                    parameters: toolCall.args,
+                    result: null,
+                  });
                 }
               });
             }
