@@ -6,6 +6,7 @@ import { Switch } from '~/components/ui/Switch';
 import { isMac } from '~/utils/os';
 import { useTranslation } from 'react-i18next';
 import { changeLanguage } from '~/i18n';
+import { useLocation } from '@remix-run/react';
 
 // Helper to get modifier key symbols/text
 const getModifierSymbol = (modifier: string): string => {
@@ -24,12 +25,12 @@ const getModifierSymbol = (modifier: string): string => {
 // Define a simpler type with only the fields we need
 type UserSettings = {
   notifications: boolean;
-  language: string;
   timezone: string;
 };
 
 export default function SettingsTab() {
   const { t } = useTranslation();
+  const location = useLocation();
   const [currentTimezone, setCurrentTimezone] = useState('');
   const [settings, setSettings] = useState<UserSettings>(() => {
     try {
@@ -40,7 +41,6 @@ export default function SettingsTab() {
 
         return {
           notifications: parsedSettings.notifications ?? true,
-          language: parsedSettings.language ?? 'en',
           timezone: parsedSettings.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone,
         };
       }
@@ -51,16 +51,18 @@ export default function SettingsTab() {
     // Default settings if parsing fails or no saved settings
     return {
       notifications: true,
-      language: 'en',
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     };
   });
+
+  // Determine current language from URL
+  const currentLanguage = location.pathname.startsWith('/cn') ? 'zh' : 'en';
 
   useEffect(() => {
     setCurrentTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
   }, []);
 
-  // Save settings automatically when they change
+  // Save settings automatically when they change, excluding language
   useEffect(() => {
     try {
       // Get existing profile data, with error handling
@@ -76,11 +78,10 @@ export default function SettingsTab() {
         console.error('Error parsing existing profile, using empty object:', parseError);
       }
 
-      // Merge with new settings
+      // Merge with new settings (excluding language)
       const updatedProfile = {
         ...existingProfile,
         notifications: settings.notifications,
-        language: settings.language,
         timezone: settings.timezone,
       };
 
@@ -92,10 +93,9 @@ export default function SettingsTab() {
     }
   }, [settings, t]);
 
-  // Handle language change
+  // Handle language change - only changes URL
   const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newLanguage = e.target.value;
-    setSettings((prev) => ({ ...prev, language: newLanguage }));
     changeLanguage(newLanguage);
   };
 
@@ -119,7 +119,7 @@ export default function SettingsTab() {
             <label className="block text-sm text-bolt-elements-textSecondary">{t('settings.language')}</label>
           </div>
           <select
-            value={settings.language}
+            value={currentLanguage}
             onChange={handleLanguageChange}
             className={classNames(
               'w-full px-3 py-2 rounded-lg text-sm',

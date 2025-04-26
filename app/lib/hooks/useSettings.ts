@@ -26,7 +26,6 @@ import { getLocalStorage, setLocalStorage } from '~/lib/persistence';
 
 export interface Settings {
   theme: 'light' | 'dark' | 'system';
-  language: string;
   notifications: boolean;
   eventLogs: boolean;
   timezone: string;
@@ -36,7 +35,6 @@ export interface Settings {
 export interface UseSettingsReturn {
   // Theme and UI settings
   setTheme: (theme: Settings['theme']) => void;
-  setLanguage: (language: string) => void;
   setNotifications: (enabled: boolean) => void;
   setEventLogs: (enabled: boolean) => void;
   setTimezone: (timezone: string) => void;
@@ -85,7 +83,6 @@ export function useSettings(): UseSettingsReturn {
     const storedSettings = getLocalStorage('settings');
     return {
       theme: storedSettings?.theme || 'system',
-      language: storedSettings?.language || 'en',
       notifications: storedSettings?.notifications ?? true,
       eventLogs: storedSettings?.eventLogs ?? true,
       timezone: storedSettings?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -152,13 +149,6 @@ export function useSettings(): UseSettingsReturn {
     [saveSettings],
   );
 
-  const setLanguage = useCallback(
-    (language: string) => {
-      saveSettings({ language });
-    },
-    [saveSettings],
-  );
-
   const setNotifications = useCallback(
     (enabled: boolean) => {
       saveSettings({ notifications: enabled });
@@ -183,7 +173,9 @@ export function useSettings(): UseSettingsReturn {
   }, [providers]);
 
   return {
-    ...settings,
+    settings: {
+      ...settings,
+    },
     providers,
     activeProviders,
     updateProviderSettings,
@@ -200,10 +192,8 @@ export function useSettings(): UseSettingsReturn {
     contextOptimizationEnabled,
     enableContextOptimization,
     setTheme,
-    setLanguage,
     setNotifications,
     setTimezone,
-    settings,
     tabConfiguration,
     updateTabConfiguration: updateTabConfig,
     resetTabConfiguration: resetTabConfig,

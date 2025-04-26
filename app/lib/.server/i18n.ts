@@ -24,7 +24,8 @@ export function getServerTranslations(language: string = 'en') {
  * @param language The language code ('en' or 'zh')
  */
 export function getProgressMessages(language: string = 'en') {
-  const translations = getServerTranslations(language);
+  const userLanguage = language === 'zh' ? 'zh' : 'en';
+  const translations = getServerTranslations(userLanguage);
   const serverMessages = translations.serverMessages || {};
   const progressMessages = serverMessages.progress || {};
 

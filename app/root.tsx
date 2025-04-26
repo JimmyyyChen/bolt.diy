@@ -70,6 +70,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   // Set initial language based on URL path
   if (isChinese) {
     i18n.changeLanguage('zh');
+  } else {
+    i18n.changeLanguage('en');
   }
 
   return new Response(JSON.stringify({ language: isChinese ? 'zh' : 'en' }), {

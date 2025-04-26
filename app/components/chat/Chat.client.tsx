@@ -20,7 +20,7 @@ import Cookies from 'js-cookie';
 import { debounce } from '~/utils/debounce';
 import { useSettings } from '~/lib/hooks/useSettings';
 import type { ProviderInfo } from '~/types/model';
-import { useSearchParams } from '@remix-run/react';
+import { useSearchParams, useLocation } from '@remix-run/react';
 import { createSampler } from '~/utils/sampler';
 import { getTemplates, selectStarterTemplate } from '~/utils/selectStarterTemplate';
 import { logStore } from '~/lib/stores/logs';
@@ -161,6 +161,9 @@ export const ChatImpl = memo(
 
     const [apiKeys, setApiKeys] = useState<Record<string, string>>({});
 
+    const location = useLocation();
+    const language = location.pathname.startsWith('/cn') ? 'zh' : 'en';
+
     const {
       messages,
       isLoading,
@@ -182,9 +185,7 @@ export const ChatImpl = memo(
         files,
         promptId,
         contextOptimization: contextOptimizationEnabled,
-        language: localStorage.getItem('bolt_user_profile')
-          ? JSON.parse(localStorage.getItem('bolt_user_profile') || '{}').language || 'en'
-          : 'en',
+        language,
         supabase: {
           isConnected: supabaseConn.isConnected,
           hasSelectedProject: !!selectedProject,

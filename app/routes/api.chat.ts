@@ -78,12 +78,7 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
     // Use language provided in the request if available
     userLanguage = 'zh';
   } else {
-    // Fallback to browser accept-language header
-    const acceptLanguage = request.headers.get('Accept-Language') || '';
-
-    if (acceptLanguage.includes('zh')) {
-      userLanguage = 'zh';
-    }
+    userLanguage = 'en';
   }
 
   // Get the appropriate messages based on language using the i18n utility
