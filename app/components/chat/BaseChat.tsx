@@ -37,8 +37,6 @@ import { TestContextTags } from './TestContextTags';
 import { SupabaseChatAlert } from '~/components/chat/SupabaseAlert';
 import { SupabaseConnection } from './SupabaseConnection';
 import { McpConnection } from './MCPConnection';
-import type { ProgressAnnotation } from '~/types/context';
-import ProgressCompilation from './ProgressCompilation';
 
 const TEXTAREA_MIN_HEIGHT = 76;
 
@@ -113,7 +111,6 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
       supabaseAlert,
       clearSupabaseAlert,
       actionRunner,
-      data,
     },
     ref,
   ) => {
@@ -124,15 +121,17 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
     const [isModelSettingsCollapsed, setIsModelSettingsCollapsed] = useState(true);
     const [isModelLoading, setIsModelLoading] = useState<string | undefined>('all');
 
-    const [progressAnnotations, setProgressAnnotations] = useState<ProgressAnnotation[]>([]);
-    useEffect(() => {
-      if (data) {
-        const progressList = data.filter(
-          (x) => typeof x === 'object' && (x as any).type === 'progress',
-        ) as ProgressAnnotation[];
-        setProgressAnnotations(progressList);
-      }
-    }, [data]);
+    /*
+     * const [progressAnnotations, setProgressAnnotations] = useState<ProgressAnnotation[]>([]);
+     * useEffect(() => {
+     *   if (data) {
+     *     const progressList = data.filter(
+     *       (x) => typeof x === 'object' && (x as any).type === 'progress',
+     *     ) as ProgressAnnotation[];
+     *     setProgressAnnotations(progressList);
+     *   }
+     * }, [data]);
+     */
 
     useEffect(() => {
       onStreamingChange?.(isStreaming);
@@ -304,7 +303,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                     />
                   )}
                 </div>
-                {progressAnnotations && <ProgressCompilation data={progressAnnotations} />}
+                {/* {progressAnnotations && <ProgressCompilation data={progressAnnotations} />} */}
                 <div
                   className={classNames(
                     'bg-bolt-elements-background-depth-2 p-3 rounded-lg border border-bolt-elements-borderColor relative w-full max-w-chat mx-auto z-prompt',

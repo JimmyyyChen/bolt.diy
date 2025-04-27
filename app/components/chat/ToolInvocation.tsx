@@ -47,7 +47,9 @@ export const ToolInvocation = memo(({ toolInvocations }: ToolInvocationProps) =>
           </div>
           <div className="bg-bolt-elements-artifacts-borderColor w-[1px]" />
           <div className="px-5 p-3.5 w-full text-left">
-            <div className="w-full text-bolt-elements-textPrimary font-medium leading-5 text-sm">Tool Invocations</div>
+            <div className="w-full text-bolt-elements-textPrimary font-medium leading-5 text-sm">
+              MCP Tool Invocations
+            </div>
             <div className="w-full w-full text-bolt-elements-textSecondary text-xs mt-0.5">
               {toolInvocations.length} tool{toolInvocations.length > 1 ? 's' : ''} used
             </div>
