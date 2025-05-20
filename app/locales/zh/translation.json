@@ -93,7 +93,9 @@
     "saveApiKey": "保存API密钥",
     "clearApiKey": "清除API密钥",
     "exportChat": "导出聊天记录",
-    "importChat": "导入聊天记录"
+    "importChat": "导入聊天记录",
+    "importExampleChat": "导入示例对话",
+    "loadExample": "加载示例对话"
   },
   "mcp": {
     "title": "MCP配置",

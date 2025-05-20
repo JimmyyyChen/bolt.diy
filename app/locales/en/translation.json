@@ -93,7 +93,9 @@
     "saveApiKey": "Save API Key",
     "clearApiKey": "Clear API Key",
     "exportChat": "Export Chat",
-    "importChat": "Import Chat"
+    "importChat": "Import Chat",
+    "importExampleChat": "Import Example Chat",
+    "loadExample": "Load Example Chat"
   },
   "mcp": {
     "title": "MCP Configuration",

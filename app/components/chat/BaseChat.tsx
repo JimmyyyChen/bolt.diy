@@ -20,6 +20,7 @@ import { useTranslation } from 'react-i18next';
 import styles from './BaseChat.module.scss';
 import { ExportChatButton } from '~/components/chat/chatExportAndImport/ExportChatButton';
 import { ImportButtons } from '~/components/chat/chatExportAndImport/ImportButtons';
+import { ExampleChatButton } from '~/components/chat/chatExportAndImport/ExampleChatButton';
 import { ExamplePrompts } from '~/components/chat/ExamplePrompts';
 import type { ApiActions } from '~/types/ApiTypes';
 
@@ -534,6 +535,13 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
               {!chatStarted && (
                 <div className="flex justify-center gap-2">
                   <ImportButtons importChat={importChat} />
+
+                  {/* TODO: add more examples */}
+                  <ExampleChatButton
+                    importChat={importChat}
+                    path="/examples/example-chat.json"
+                    buttonTextKey="chat.loadExample"
+                  />
                   {/* <GitCloneButton importChat={importChat} /> */}
                 </div>
               )}
