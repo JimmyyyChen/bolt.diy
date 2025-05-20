@@ -539,6 +539,16 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                   {/* TODO: add more examples */}
                   <ExampleChatButton
                     importChat={importChat}
+                    path="/examples/todo-app-CICD-cn.json"
+                    buttonTextKey="chat.loadExample"
+                  />
+                  <ExampleChatButton
+                    importChat={importChat}
+                    path="/examples/iotdb-cn.json"
+                    buttonTextKey="chat.loadExample"
+                  />
+                  <ExampleChatButton
+                    importChat={importChat}
                     path="/examples/example-chat.json"
                     buttonTextKey="chat.loadExample"
                   />
