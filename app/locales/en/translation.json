@@ -168,7 +168,24 @@
     "addAction": "Add Action",
     "failedToSave": "Failed to save API action",
     "failedToDelete": "Failed to delete API action",
-    "done": "Done"
+    "done": "Done",
+    "unknownServer": "Unknown Server",
+    "actionsPlural": "actions",
+    "actionsSingular": "action",
+    "availableFrom": "available from",
+    "apisPlural": " APIs",
+    "apisSingular": " API",
+    "path": "Path",
+    "description": "Description"
+  },
+  "testActions": {
+    "title": "Test Actions",
+    "testsPlural": "tests",
+    "testsSingular": "test",
+    "available": "available",
+    "test": "TEST",
+    "filePath": "File Path",
+    "description": "Description"
   },
   "testContext": {
     "addTestCode": "Add Test Code",

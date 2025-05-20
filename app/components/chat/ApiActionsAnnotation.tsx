@@ -4,6 +4,7 @@ import type { ApiActionsAnnotation as ApiActionsType } from '~/types/context';
 import { classNames } from '~/utils/classNames';
 import { cubicEasingFn } from '~/utils/easings';
 import { Plug, ChevronUp, ChevronDown } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface ApiActionsAnnotationProps {
   apiActions: ApiActionsType;
@@ -11,6 +12,7 @@ interface ApiActionsAnnotationProps {
 
 export const ApiActionsAnnotation = memo(({ apiActions }: ApiActionsAnnotationProps) => {
   const [showDetails, setShowDetails] = useState(false);
+  const { t } = useTranslation();
 
   const toggleDetails = () => {
     setShowDetails(!showDetails);
@@ -23,7 +25,7 @@ export const ApiActionsAnnotation = memo(({ apiActions }: ApiActionsAnnotationPr
   }
 
   // Count unique servers
-  const uniqueServers = new Set(actions.map((action) => action.serverUrl || 'Unknown Server')).size;
+  const uniqueServers = new Set(actions.map((action) => action.serverUrl || t('apiActions.unknownServer'))).size;
 
   return (
     <div className="border border-bolt-elements-borderColor flex flex-col overflow-hidden rounded-lg w-full transition-border duration-150 mt-4">
@@ -37,10 +39,13 @@ export const ApiActionsAnnotation = memo(({ apiActions }: ApiActionsAnnotationPr
           </div>
           <div className="bg-bolt-elements-artifacts-borderColor w-[1px]" />
           <div className="px-5 p-3.5 w-full text-left">
-            <div className="w-full text-bolt-elements-textPrimary font-medium leading-5 text-sm">API Actions</div>
+            <div className="w-full text-bolt-elements-textPrimary font-medium leading-5 text-sm">
+              {t('apiActions.title')}
+            </div>
             <div className="w-full text-bolt-elements-textSecondary text-xs mt-0.5">
-              {actions.length} action{actions.length > 1 ? 's' : ''} available from {uniqueServers} API
-              {uniqueServers > 1 ? 's' : ''}
+              {actions.length} {t(actions.length > 1 ? 'apiActions.actionsPlural' : 'apiActions.actionsSingular')}{' '}
+              {t('apiActions.availableFrom')} {uniqueServers}
+              {uniqueServers > 1 ? t('apiActions.apisPlural') : t('apiActions.apisSingular')}
             </div>
           </div>
         </button>
@@ -89,10 +94,12 @@ interface ActionsListProps {
 }
 
 const ActionsList = memo(({ actions }: ActionsListProps) => {
+  const { t } = useTranslation();
+
   // Group actions by server URL
   const actionsByServer = actions.reduce(
     (acc, action) => {
-      const serverUrl = action.serverUrl || 'Unknown Server';
+      const serverUrl = action.serverUrl || t('apiActions.unknownServer');
 
       if (!acc[serverUrl]) {
         acc[serverUrl] = [];
@@ -110,8 +117,8 @@ const ActionsList = memo(({ actions }: ActionsListProps) => {
       {Object.entries(actionsByServer).map(([serverUrl, serverActions], serverIndex) => (
         <div key={serverUrl} className={serverIndex > 0 ? 'mt-6 pt-6 border-t border-bolt-elements-borderColor' : ''}>
           <div className="text-bolt-elements-textSecondary text-sm mb-3">
-            <span className="font-semibold">Server URL:</span>{' '}
-            {serverUrl === 'Unknown Server' ? 'Not specified' : serverUrl}
+            <span className="font-semibold">{t('apiActions.serverUrl')}:</span>{' '}
+            {serverUrl === t('apiActions.unknownServer') ? t('apiActions.notSpecified') : serverUrl}
           </div>
           <ul className="list-none space-y-4">
             {serverActions.map((action, index) => {
@@ -138,14 +145,16 @@ const ActionsList = memo(({ actions }: ActionsListProps) => {
                   </div>
 
                   <div className="ml-6 mb-2">
-                    <div className="text-bolt-elements-textSecondary text-xs mb-1">Path:</div>
+                    <div className="text-bolt-elements-textSecondary text-xs mb-1">{t('apiActions.path')}:</div>
                     <div className="bg-bolt-elements-artifacts-inlineCode-background text-bolt-elements-artifacts-inlineCode-text px-3 py-2 rounded-md font-mono">
                       {action.path}
                     </div>
 
                     {action.summary && (
                       <>
-                        <div className="text-bolt-elements-textSecondary text-xs mt-3 mb-1">Description:</div>
+                        <div className="text-bolt-elements-textSecondary text-xs mt-3 mb-1">
+                          {t('apiActions.description')}:
+                        </div>
                         <div
                           className={classNames('px-3 py-2 rounded-md text-sm', {
                             'mb-3.5': !isLast,
