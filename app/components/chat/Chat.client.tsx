@@ -351,6 +351,7 @@ export const ChatImpl = memo(
           },
         ];
 
+        // TODO: this feature is deprecated for bolt.SE. autoSelectTemplate is currently default to false.
         if (autoSelectTemplate) {
           const { template, title } = await selectStarterTemplate({
             message: messageContent,
@@ -390,16 +391,55 @@ export const ChatImpl = memo(
         }
 
         if (selectedApiActions.length > 0) {
-          starterMessages.push({
-            id: `${new Date().getTime()}-api-actions`,
-            role: 'user',
-            content: `[Model: ${model}]\n\n[Provider: ${provider.name}]\n\nPlease use the following API actions to complete the task: ${JSON.stringify(selectedApiActions)}`,
-            annotations: ['hidden'],
+          // Gather all actions and include their server URLs
+          const allActions = selectedApiActions.flatMap((api) => {
+            if (api.actions && api.actions.length > 0) {
+              // Add serverUrl to each action from this API
+              return api.actions.map((action) => ({
+                ...action,
+                serverUrl: api.serverUrl,
+              }));
+            }
+
+            return [];
           });
+
+          if (allActions.length > 0) {
+            // Add API actions annotation to the user's message
+            starterMessages[0].annotations = starterMessages[0].annotations || [];
+            starterMessages[0].annotations.push({
+              type: 'apiActions',
+              actions: allActions,
+            } as any);
+          }
         }
 
         // TODO: title. package.json add test script: vitest run
         if (testCodes && testCodes.length > 0) {
+          // Create test actions annotation
+          const testActions = testCodes
+            .map((testItem, index) => {
+              const testName = testItem.name || `Test ${index + 1}`;
+              const testCodeContent = testItem.code || '';
+
+              return {
+                name: testName,
+                filePath: `__test__/${testName.replace(/\s+/g, '_').toLowerCase()}.test.js`,
+                content: testCodeContent,
+                summary: `Test file for ${testName}`,
+              };
+            })
+            .filter((test) => test.content);
+
+          // Add the test actions annotation to the user's message
+          if (testActions.length > 0) {
+            starterMessages[0].annotations = starterMessages[0].annotations || [];
+            starterMessages[0].annotations.push({
+              type: 'testActions',
+              actions: testActions,
+            } as any);
+          }
+
           testCodes.forEach((testItem, index) => {
             const testId = testItem.id || `test-${index}`;
             const testName = testItem.name || `Test ${index + 1}`;
@@ -450,7 +490,7 @@ export const ChatImpl = memo(
 
       if (modifiedFiles !== undefined) {
         const userUpdateArtifact = filesToArtifacts(modifiedFiles, `${Date.now()}`);
-        append({
+        const messageObj: any = {
           role: 'user',
           content: [
             {
@@ -461,12 +501,38 @@ export const ChatImpl = memo(
               type: 'image',
               image: imageData,
             })),
-          ] as any,
-        });
+          ],
+        };
+
+        // Add API actions annotation if selected
+        if (selectedApiActions.length > 0) {
+          // Gather all actions and include their server URLs
+          const allActions = selectedApiActions.flatMap((api) => {
+            if (api.actions && api.actions.length > 0) {
+              // Add serverUrl to each action from this API
+              return api.actions.map((action) => ({
+                ...action,
+                serverUrl: api.serverUrl,
+              }));
+            }
+
+            return [];
+          });
+
+          if (allActions.length > 0) {
+            messageObj.annotations = messageObj.annotations || [];
+            messageObj.annotations.push({
+              type: 'apiActions',
+              actions: allActions,
+            } as any);
+          }
+        }
+
+        append(messageObj);
 
         workbenchStore.resetAllFileModifications();
       } else {
-        append({
+        const messageObj: any = {
           role: 'user',
           content: [
             {
@@ -477,8 +543,34 @@ export const ChatImpl = memo(
               type: 'image',
               image: imageData,
             })),
-          ] as any,
-        });
+          ],
+        };
+
+        // Add API actions annotation if selected
+        if (selectedApiActions.length > 0) {
+          // Gather all actions and include their server URLs
+          const allActions = selectedApiActions.flatMap((api) => {
+            if (api.actions && api.actions.length > 0) {
+              // Add serverUrl to each action from this API
+              return api.actions.map((action) => ({
+                ...action,
+                serverUrl: api.serverUrl,
+              }));
+            }
+
+            return [];
+          });
+
+          if (allActions.length > 0) {
+            messageObj.annotations = messageObj.annotations || [];
+            messageObj.annotations.push({
+              type: 'apiActions',
+              actions: allActions,
+            } as any);
+          }
+        }
+
+        append(messageObj);
       }
 
       setInput('');

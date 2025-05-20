@@ -1,6 +1,5 @@
 import type { Message } from 'ai';
 import { toast } from 'react-toastify';
-import { ImportFolderButton } from '~/components/chat/ImportFolderButton';
 import { Button } from '~/components/ui/Button';
 import { classNames } from '~/utils/classNames';
 
@@ -9,7 +8,11 @@ type ChatData = {
   description?: string; // Optional description
 };
 
-export function ImportButtons(importChat: ((description: string, messages: Message[]) => Promise<void>) | undefined) {
+interface ImportButtonsProps {
+  importChat?: (description: string, messages: Message[]) => Promise<void>;
+}
+
+export function ImportButtons({ importChat }: ImportButtonsProps) {
   return (
     <div className="flex flex-col items-center justify-center w-auto">
       <input
@@ -78,7 +81,7 @@ export function ImportButtons(importChat: ((description: string, messages: Messa
             <span className="i-ph:upload-simple w-4 h-4" />
             Import Chat
           </Button>
-          <ImportFolderButton
+          {/* <ImportFolderButton
             importChat={importChat}
             className={classNames(
               'gap-2 bg-bolt-elements-background-depth-1',
@@ -88,7 +91,7 @@ export function ImportButtons(importChat: ((description: string, messages: Messa
               'h-10 px-4 py-2 min-w-[120px] justify-center',
               'transition-all duration-200 ease-in-out rounded-lg',
             )}
-          />
+          /> */}
         </div>
       </div>
     </div>
