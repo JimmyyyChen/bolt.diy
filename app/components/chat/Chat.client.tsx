@@ -480,6 +480,15 @@ export const ChatImpl = memo(
           });
         }
 
+        if (language === 'zh') {
+          starterMessages.push({
+            id: `${new Date().getTime()}-language-user`,
+            role: 'user',
+            content: `接下来的内容请都用中文回复。`,
+            annotations: ['hidden'],
+          });
+        }
+
         setMessages(starterMessages);
         reload();
         setFakeLoading(false);
