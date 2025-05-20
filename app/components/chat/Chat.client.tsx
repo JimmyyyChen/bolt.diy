@@ -391,6 +391,13 @@ export const ChatImpl = memo(
         }
 
         if (selectedApiActions.length > 0) {
+          starterMessages.push({
+            id: `${new Date().getTime()}-api-actions`,
+            role: 'user',
+            content: `[Model: ${model}]\n\n[Provider: ${provider.name}]\n\nPlease use the following API actions to complete the task: ${JSON.stringify(selectedApiActions)}`,
+            annotations: ['hidden'],
+          });
+
           // Gather all actions and include their server URLs
           const allActions = selectedApiActions.flatMap((api) => {
             if (api.actions && api.actions.length > 0) {
