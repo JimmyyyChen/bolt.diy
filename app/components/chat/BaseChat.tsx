@@ -19,6 +19,8 @@ import { useTranslation } from 'react-i18next';
 
 import styles from './BaseChat.module.scss';
 import { ExportChatButton } from '~/components/chat/chatExportAndImport/ExportChatButton';
+import { ImportButtons } from '~/components/chat/chatExportAndImport/ImportButtons';
+import { ExampleChatButton } from '~/components/chat/chatExportAndImport/ExampleChatButton';
 import { ExamplePrompts } from '~/components/chat/ExamplePrompts';
 import type { ApiActions } from '~/types/ApiTypes';
 
@@ -101,6 +103,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
       sendMessage,
       handleStop,
       exportChat,
+      importChat,
       uploadedFiles = [],
       setUploadedFiles,
       imageDataList = [],
@@ -517,12 +520,6 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
             </div>
 
             <div className="flex flex-col justify-center gap-5">
-              {/* {!chatStarted && (
-                <div className="flex justify-center gap-2">
-                  {ImportButtons(importChat)}
-                  <GitCloneButton importChat={importChat} />
-                </div>
-              )} */}
               {!chatStarted && (
                 <ExamplePrompts
                   sendMessage={(event, messageInput) => {
@@ -534,6 +531,34 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                     handleSendMessage?.(event, messageInput);
                   }}
                 />
+              )}
+              {!chatStarted && (
+                <div className="flex justify-center gap-2">
+                  <ImportButtons importChat={importChat} />
+
+                  {/* TODO: add more examples */}
+                  <ExampleChatButton
+                    importChat={importChat}
+                    path="/examples/llm-todo-cicd-cn.json"
+                    buttonTextKey="chat.loadExample"
+                  />
+                  {/* <ExampleChatButton
+                    importChat={importChat}
+                    path="/examples/todo-app-CICD-cn.json"
+                    buttonTextKey="chat.loadExample"
+                  /> */}
+                  {/* <ExampleChatButton
+                    importChat={importChat}
+                    path="/examples/iotdb-cn.json"
+                    buttonTextKey="chat.loadExample"
+                  />
+                  <ExampleChatButton
+                    importChat={importChat}
+                    path="/examples/example-chat.json"
+                    buttonTextKey="chat.loadExample"
+                  /> */}
+                  {/* <GitCloneButton importChat={importChat} /> */}
+                </div>
               )}
               {/* {!chatStarted && <StarterTemplates />} */}
             </div>

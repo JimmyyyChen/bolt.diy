@@ -351,6 +351,7 @@ export const ChatImpl = memo(
           },
         ];
 
+        // TODO: this feature is deprecated for bolt.SE. autoSelectTemplate is currently default to false.
         if (autoSelectTemplate) {
           const { template, title } = await selectStarterTemplate({
             message: messageContent,
@@ -396,10 +397,56 @@ export const ChatImpl = memo(
             content: `[Model: ${model}]\n\n[Provider: ${provider.name}]\n\nPlease use the following API actions to complete the task: ${JSON.stringify(selectedApiActions)}`,
             annotations: ['hidden'],
           });
+
+          // Gather all actions and include their server URLs
+          const allActions = selectedApiActions.flatMap((api) => {
+            if (api.actions && api.actions.length > 0) {
+              // Add serverUrl to each action from this API
+              return api.actions.map((action) => ({
+                ...action,
+                serverUrl: api.serverUrl,
+              }));
+            }
+
+            return [];
+          });
+
+          if (allActions.length > 0) {
+            // Add API actions annotation to the user's message
+            starterMessages[0].annotations = starterMessages[0].annotations || [];
+            starterMessages[0].annotations.push({
+              type: 'apiActions',
+              actions: allActions,
+            } as any);
+          }
         }
 
         // TODO: title. package.json add test script: vitest run
         if (testCodes && testCodes.length > 0) {
+          // Create test actions annotation
+          const testActions = testCodes
+            .map((testItem, index) => {
+              const testName = testItem.name || `Test ${index + 1}`;
+              const testCodeContent = testItem.code || '';
+
+              return {
+                name: testName,
+                filePath: `__test__/${testName.replace(/\s+/g, '_').toLowerCase()}.test.js`,
+                content: testCodeContent,
+                summary: `Test file for ${testName}`,
+              };
+            })
+            .filter((test) => test.content);
+
+          // Add the test actions annotation to the user's message
+          if (testActions.length > 0) {
+            starterMessages[0].annotations = starterMessages[0].annotations || [];
+            starterMessages[0].annotations.push({
+              type: 'testActions',
+              actions: testActions,
+            } as any);
+          }
+
           testCodes.forEach((testItem, index) => {
             const testId = testItem.id || `test-${index}`;
             const testName = testItem.name || `Test ${index + 1}`;
@@ -424,9 +471,9 @@ export const ChatImpl = memo(
             role: 'user',
             content: `[Model: ${model}]\n\n[Provider: ${provider.name}]\n\n
               ${testCodes.length > 1 ? `${testCodes.length} test files have` : 'A test file has'} been imported for vitest. You need to ensure the generated code passes ${testCodes.length > 1 ? 'all tests' : 'the test'} by:
-              - Installing all necessary dependencies for vitest
+              - Installing all necessary dependencies for vitest (but do NOT use jsdom or happy-dom)
               - Adding the "test": "vitest run" script to package.json
-              - Importing the required functions in the test files
+              - Edit the test files in the __test__ folder to ensure that all required functions and the vitest library are properly imported.
               - Before starting the development server, execute tests using "<boltAction type="test"...>" to verify that all tests pass
               Now that the ${testCodes.length > 1 ? 'tests have' : 'test has'} been imported, proceed with my original request.`,
             annotations: ['hidden'],
@@ -450,7 +497,7 @@ export const ChatImpl = memo(
 
       if (modifiedFiles !== undefined) {
         const userUpdateArtifact = filesToArtifacts(modifiedFiles, `${Date.now()}`);
-        append({
+        const messageObj: any = {
           role: 'user',
           content: [
             {
@@ -461,12 +508,14 @@ export const ChatImpl = memo(
               type: 'image',
               image: imageData,
             })),
-          ] as any,
-        });
+          ],
+        };
+
+        append(messageObj);
 
         workbenchStore.resetAllFileModifications();
       } else {
-        append({
+        const messageObj: any = {
           role: 'user',
           content: [
             {
@@ -477,8 +526,10 @@ export const ChatImpl = memo(
               type: 'image',
               image: imageData,
             })),
-          ] as any,
-        });
+          ],
+        };
+
+        append(messageObj);
       }
 
       setInput('');

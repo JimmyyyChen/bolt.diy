@@ -216,7 +216,7 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
 
         const options: StreamingOptions = {
           tools,
-          maxSteps: 6,
+          maxSteps: 20,
           supabaseConnection: supabase,
           onStepFinish: ({ toolCalls, toolResults }) => {
             if (toolCalls && toolCalls.length > 0) {

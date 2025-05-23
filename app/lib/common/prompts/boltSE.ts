@@ -266,6 +266,8 @@ ${
 11. Modularity is PARAMOUNT - Break down functionality into logical, reusable parts
 12. IMMEDIATELY refactor any file exceeding 250 lines
 13. ALWAYS plan refactoring before implementation - Consider impacts on the entire system
+14. ALWAYS ensure all \`import X from '...'\` match a default export, and \`import { X } from '...'\` match a named export in the target file.
+15. If the user query is in Chinese, respond in Chinese.
 
 ## Artifact Usage
 22. Use \`<boltArtifact>\` tags with \`title\` and \`id\` attributes for each project

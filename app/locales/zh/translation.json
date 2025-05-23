@@ -93,7 +93,9 @@
     "saveApiKey": "保存API密钥",
     "clearApiKey": "清除API密钥",
     "exportChat": "导出聊天记录",
-    "importChat": "导入聊天记录"
+    "importChat": "导入聊天记录",
+    "importExampleChat": "导入示例对话",
+    "loadExample": "加载示例对话"
   },
   "mcp": {
     "title": "MCP配置",
@@ -168,7 +170,24 @@
     "addAction": "添加操作",
     "failedToSave": "无法保存API操作",
     "failedToDelete": "无法删除API操作",
-    "done": "完成"
+    "done": "完成",
+    "unknownServer": "未知服务器",
+    "actionsPlural": "个操作",
+    "actionsSingular": "个操作",
+    "availableFrom": "可用，来自",
+    "apisPlural": "个API",
+    "apisSingular": "个API",
+    "path": "路径",
+    "description": "描述"
+  },
+  "testActions": {
+    "title": "测试操作",
+    "testsPlural": "个测试",
+    "testsSingular": "个测试",
+    "available": "可用",
+    "test": "测试",
+    "filePath": "文件路径",
+    "description": "描述"
   },
   "testContext": {
     "addTestCode": "添加测试代码",
