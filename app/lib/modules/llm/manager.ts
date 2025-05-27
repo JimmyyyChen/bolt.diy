@@ -34,10 +34,32 @@ export class LLMManager {
        * const providerModules = import.meta.glob('./providers/*.ts', { eager: true });
        */
 
-      // Look for exported classes that extend BaseProvider
-      for (const exportedItem of Object.values(providers)) {
-        if (typeof exportedItem === 'function' && exportedItem.prototype instanceof BaseProvider) {
-          const provider = new exportedItem();
+      // Define explicit order to ensure Anthropic is first (becomes default)
+      const orderedProviders = [
+        providers.AnthropicProvider,
+        providers.AmazonBedrockProvider,
+        providers.CohereProvider,
+        providers.DeepseekProvider,
+        providers.GoogleProvider,
+        providers.GroqProvider,
+        providers.HuggingFaceProvider,
+        providers.HyperbolicProvider,
+        providers.MistralProvider,
+        providers.OllamaProvider,
+        providers.OpenAIProvider,
+        providers.OpenRouterProvider,
+        providers.OpenAILikeProvider,
+        providers.PerplexityProvider,
+        providers.XAIProvider,
+        providers.TogetherProvider,
+        providers.LMStudioProvider,
+        providers.GithubProvider,
+      ];
+
+      // Register providers in explicit order
+      for (const providerClass of orderedProviders) {
+        if (typeof providerClass === 'function' && providerClass.prototype instanceof BaseProvider) {
+          const provider = new providerClass();
 
           try {
             this.registerProvider(provider);
